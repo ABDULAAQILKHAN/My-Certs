@@ -1,30 +1,79 @@
-# My Certs
+# 🎓 My Certs
 
-*Automatically synced with your [v0.dev](https://v0.dev) deployments*
+**My Certs** is a modern certificate management web application built with **React**, **Next.js**, **Redux Toolkit**, and **RTK Query**. It helps users securely upload, manage, and share their certifications — all wrapped in a sleek, responsive UI with dark/light theme support.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/aaqil-khans-projects/v0-my-certs)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.dev-black?style=for-the-badge)](https://v0.dev/chat/projects/ts51S3SX1aq)
+![My Certs Banner](https://your-image-url-here.com/banner.png) <!-- optional banner -->
 
-## Overview
+---
 
-This repository will stay in sync with your deployed chats on [v0.dev](https://v0.dev).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.dev](https://v0.dev).
+## 🚀 Features
 
-## Deployment
+### 🛠 Tech Stack
+- **Next.js App Router** (React Framework)
+- **RTK Query** – API fetching and caching
+- **Redux Toolkit** – State management
+- **Tailwind CSS** – Beautiful styling with Sky Blue theming
+- **TypeScript** – Fully typed and safe
+- **Dark/Light Theme** – Easily switchable UI modes
 
-Your project is live at:
+---
 
-**[https://vercel.com/aaqil-khans-projects/v0-my-certs](https://vercel.com/aaqil-khans-projects/v0-my-certs)**
+## 🧩 Core Functionality
 
-## Build your app
+### 🔐 Authentication
+- Secure Login/Signup with validation
+- Forgot Password functionality
 
-Continue building your app on:
+### 📁 Certificate Management
+- Upload certificates with drag-and-drop
+- Add skills/tags, descriptions, and privacy settings
+- Public/Private toggle for certificate visibility
 
-**[https://v0.dev/chat/projects/ts51S3SX1aq](https://v0.dev/chat/projects/ts51S3SX1aq)**
+### 🏠 Dashboard
+- Grid view of all certificates
+- Search and filter capabilities
+- Quick upload button
 
-## How It Works
+### 🔍 Certificate Preview
+- Fullscreen certificate viewer
+- Download and share options
+- Public view with verification badge
 
-1. Create and modify your project using [v0.dev](https://v0.dev)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+### 🙍 Profile Page
+- Edit profile and upload profile picture
+- View statistics and activity logs
+
+### 🌍 Public Certificate Pages
+- Clean, professional layout
+- Unique sharable link
+- Verification badge for authenticity
+
+---
+
+## 🧱 Key Components
+
+- **Responsive Navbar** with dark/light toggle
+- **Interactive Certificate Cards**
+- **Theme Provider** for persistent theme control
+- **Share Modal** with social integration
+- **Skill Tagging** for each certificate
+
+---
+
+## ✅ Highlights
+
+- 🔄 **Real-time Theme Switching**
+- 📱 **Fully Responsive UI**
+- 🔍 **Advanced Search & Filter**
+- 🗃 **File Upload with Live Preview**
+- 🔗 **Unique Sharable Links**
+- 🧠 **Skill Tagging & Categorization**
+- 📤 **Social Media Integration**
+- ✅ **Certificate Authenticity Badge**
+
+---
+
+## 🧪 Mock API
+
+This version uses mock API endpoints powered by RTK Query. You can easily replace them with real endpoints by editing the API service files in:
+
