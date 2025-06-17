@@ -9,7 +9,8 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "My Certs - Certificate Management",
   description: "Manage and share your certificates online",
-    generator: 'v0.dev'
+  authors: [{name: "Aaqil khan"}],
+  icons: '/quality.png'
 }
 
 export default function RootLayout({
