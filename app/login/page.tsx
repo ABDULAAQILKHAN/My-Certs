@@ -5,38 +5,50 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { useLoginMutation } from "@/lib/api/mockAuthApi"
 import { useAppDispatch, useAppSelector } from "@/lib/hooks"
 import { setCredentials } from "@/lib/slices/authSlice"
 import { Eye, EyeOff, Award, Loader2 } from "lucide-react"
-
+import { signIn } from "@/lib/auth"
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
-
+  const [isLoading, setIsLoading] = useState<boolean>(false)
   const router = useRouter()
   const dispatch = useAppDispatch()
-  const { isAuthenticated, isInitialized } = useAppSelector((state) => state.auth)
-  const [login, { isLoading }] = useLoginMutation()
+  const { isAuthenticated } = useAppSelector((state) => state.auth)
 
   useEffect(() => {
-    if (isInitialized && isAuthenticated) {
+    console.log("isAuthenticated login", isAuthenticated)
+    if ( isAuthenticated) {
       router.push("/dashboard")
     }
-  }, [isAuthenticated, isInitialized, router])
+  }, [isAuthenticated])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
-
+    if(!email || !password){
+      setError("Please fill all the fields!")
+      return
+    }
+    setIsLoading(true)
     try {
-      const result = await login({ email, password }).unwrap()
-      dispatch(setCredentials(result))
-      router.push("/dashboard")
+      const {data, error} = await signIn( email, password )
+      console.log(data)
+      if(error){
+        setError(error)
+        return
+      }
+      const user = data.user.user_metadata;
+      const token = data.session.access_token;
+      dispatch(setCredentials({user,token}))
+      router.push("/")
     } catch (err: any) {
       setError(err.data?.message || "Login failed")
+    }finally{
+      setIsLoading(false)
     }
   }
 
@@ -46,13 +58,6 @@ export default function LoginPage() {
     setPassword("demo123")
   }
 
-  if (!isInitialized) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    )
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 relative">
@@ -83,7 +88,7 @@ export default function LoginPage() {
               </div>
             )}
 
-            {/* Demo credentials info */}
+            {/* Demo credentials info
             <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
               <p className="text-sm text-blue-600 dark:text-blue-400 mb-2">
                 <strong>Demo Credentials:</strong>
@@ -98,7 +103,7 @@ export default function LoginPage() {
               >
                 Click to fill demo credentials
               </button>
-            </div>
+            </div> */}
 
             <div className="space-y-4">
               <div>

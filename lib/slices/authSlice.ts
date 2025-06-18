@@ -31,6 +31,10 @@ const authSlice = createSlice({
       state.token = action.payload.token
       state.isAuthenticated = true
       state.isInitialized = true
+
+      // Persist to localStorage
+      localStorage.setItem("mycerts_token", action.payload.token)
+      localStorage.setItem("mycerts_current_user", JSON.stringify(action.payload.user))
     },
     logout: (state) => {
       state.user = null
