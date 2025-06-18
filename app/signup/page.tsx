@@ -5,64 +5,152 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { useSignupMutation } from "@/lib/api/mockAuthApi"
 import { useAppDispatch, useAppSelector } from "@/lib/hooks"
-import { setCredentials } from "@/lib/slices/authSlice"
-import { Eye, EyeOff, Award, Loader2 } from "lucide-react"
-
+import { Eye, EyeOff, Award, Loader2, CircleCheckBig } from "lucide-react"
+import {signUp} from '@/lib/auth'
 export default function SignupPage() {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
+  const [phoneNumber, setPhoneNumber] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [error, setError] = useState("")
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [isSuccessOpen, setIsSuccessOpen] = useState<boolean>(false)
 
   const router = useRouter()
   const dispatch = useAppDispatch()
-  const { isAuthenticated, isInitialized } = useAppSelector((state) => state.auth)
-  const [signup, { isLoading }] = useSignupMutation()
+  const { isAuthenticated } = useAppSelector((state) => state.auth)
 
   useEffect(() => {
-    if (isInitialized && isAuthenticated) {
+    if ( isAuthenticated) {
       router.push("/dashboard")
     }
-  }, [isAuthenticated, isInitialized, router])
+  }, [isAuthenticated])
+
+ const validateEmail = (email: string) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  };
+
+const validatePassword = (password: string): string => {
+	if (!password) return 'Password is required';
+	if (password.length < 8) return 'Password must be at least 8 characters long';
+	if (!/[A-Z]/.test(password))
+		return 'Password must contain at least one uppercase letter';
+	if (!/[a-z]/.test(password))
+		return 'Password must contain at least one lowercase letter';
+	if (!/[0-9]/.test(password))
+		return 'Password must contain at least one number';
+	if (!/[!@#$%^&*]/.test(password))
+		return 'Password must contain at least one special character';
+	return '';
+};
+
+  const validatePhoneNumber = (phone: string) => {
+    // Simple phone number validation - adjust based on your requirements
+    const re = /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,3}[-\s.]?[0-9]{3,6}$/;
+    return re.test(phone);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
 
-    if (password !== confirmPassword) {
-      setError("Passwords do not match")
-      return
+    // Name validation
+    if (!name.trim()) {
+      setError("Name is required");
+      return;
+    }
+
+    // Email validation
+    if (!email.trim()) {
+      setError("Email is required");
+      return;
+    }
+    
+    if (!validateEmail(email)) {
+      setError("Please enter a valid email address");
+      return;
+    }
+
+    // Phone number validation (optional)
+    if (phoneNumber && !validatePhoneNumber(phoneNumber)) {
+      setError("Please enter a valid phone number");
+      return;
+    }
+
+    // Password validation
+    if (!password) {
+      setError("Password is required");
+      return;
     }
 
     if (password.length < 6) {
-      setError("Password must be at least 6 characters long")
+      setError("Password must be at least 6 characters long");
+      return;
+    }
+    const passwordError = validatePassword(password)
+    if(passwordError){
+      setError(passwordError)
       return
     }
 
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    setIsLoading(true)
     try {
-      const result = await signup({ name, email, password }).unwrap()
-      dispatch(setCredentials(result))
-      router.push("/dashboard")
+      console.log(email, password, name, phoneNumber);
+      const result = await signUp(email, password, name)
+      console.log("result", result)
+      if (result?.user?.identities?.length === 0) {
+        setError("Email already registered.")
+        return
+      }
+      if (result?.user?.id) {
+        setIsSuccessOpen(true)
+      }
+      setTimeout(() => {
+        setIsSuccessOpen(false)
+        router.push("/login")
+      }, 4000)
     } catch (err: any) {
       setError(err.data?.message || "Signup failed")
+    } finally {
+      setIsLoading(false)
     }
   }
 
-  if (!isInitialized) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    )
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 relative">
+      {isSuccessOpen && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+              <div className="bg-secondary rounded-lg shadow-xl p-6 max-w-md w-full">
+                <div className="flex flex-col items-center text-center">
+                  <CircleCheckBig size={"90px"} className="text-green-500 mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                    Signup Successful!
+                  </h3>
+                  <p className="text-gray-600 mb-6">
+                    Please check your email for verification before logging in.
+                  </p>
+                  <button
+                    onClick={()=>setIsSuccessOpen(false)}
+                    className="px-6 py-2 bg-primary text-white rounded-md hover:bg-green-700 transition-colors"
+                  >
+                    Got it!
+                  </button>
+                </div>
+              </div>
+            </div>
+      )}
       {/* Abstract Background Pattern */}
       <div className="fixed inset-0 bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
         <div className="absolute inset-0 opacity-30 dark:opacity-20">
@@ -124,7 +212,22 @@ export default function SignupPage() {
                   placeholder="Enter your email"
                 />
               </div>
-
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Phone number
+                </label>
+                <input
+                  id="mobile"
+                  name="mobile"
+                  type="number"
+                  autoComplete="number"
+                  required
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary focus:border-primary"
+                  placeholder="Enter your contact number"
+                />
+              </div>
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Password

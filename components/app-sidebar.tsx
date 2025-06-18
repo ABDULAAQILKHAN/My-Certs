@@ -7,7 +7,7 @@ import { useAppSelector, useAppDispatch } from "@/lib/hooks"
 import { logout } from "@/lib/slices/authSlice"
 import { toggleTheme } from "@/lib/slices/themeSlice"
 import { Award, Home, Upload, User, LogOut, Sun, Moon, Settings } from "lucide-react"
-
+import { signOut } from "@/lib/auth"
 import {
   Sidebar,
   SidebarContent,
@@ -57,6 +57,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { isDark } = useAppSelector((state) => state.theme)
 
   const handleLogout = () => {
+    const error = signOut();
+    if(error){
+      console.log(error)
+    }
     dispatch(logout())
     router.push("/login")
   }
