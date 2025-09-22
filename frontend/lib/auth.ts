@@ -5,14 +5,17 @@ export async function signUp(
   email: string,
   password: string,
   name: string,
+  phoneNumber?: string
 ): Promise<{ user: User | null; error: string | null }> {
     try {
         const { data, error } = await supabase.auth.signUp({
             email,
             password,
+            phone: phoneNumber,
             options: {
                 data: {
-                    name
+                    name,
+                    project: "MyCerts"
                 },
                 emailRedirectTo: `${window.location.origin}/login`,
             },

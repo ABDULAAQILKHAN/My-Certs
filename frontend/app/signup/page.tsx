@@ -5,7 +5,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { useAppDispatch, useAppSelector } from "@/lib/hooks"
+import { useAppSelector } from "@/lib/hooks"
 import { Eye, EyeOff, Award, Loader2, CircleCheckBig } from "lucide-react"
 import {signUp} from '@/lib/auth'
 export default function SignupPage() {
@@ -21,7 +21,6 @@ export default function SignupPage() {
   const [isSuccessOpen, setIsSuccessOpen] = useState<boolean>(false)
 
   const router = useRouter()
-  const dispatch = useAppDispatch()
   const { isAuthenticated } = useAppSelector((state) => state.auth)
 
   useEffect(() => {
@@ -106,9 +105,7 @@ const validatePassword = (password: string): string => {
 
     setIsLoading(true)
     try {
-      console.log(email, password, name, phoneNumber);
-      const result = await signUp(email, password, name)
-      console.log("result", result)
+      const result = await signUp(email, password, name, phoneNumber)
       if (result?.user?.identities?.length === 0) {
         setError("Email already registered.")
         return
