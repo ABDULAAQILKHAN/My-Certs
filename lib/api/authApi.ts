@@ -20,14 +20,18 @@ export interface SignupRequest {
 }
 
 export interface AuthResponse {
-  user: User
-  token: string
+  success: boolean;
+  statusCode: number;
+  message: string;
+  data: User | null;
+  error: string | null;
+  timestamp: string;
 }
 
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "/api/auth",
+    baseUrl: process.env.NEXT_PUBLIC_BACKEND_URL ,
     prepareHeaders: (headers, { getState }) => {
       const token = (getState() as any).auth.token
       if (token) {
@@ -38,20 +42,27 @@ export const authApi = createApi({
   }),
   tagTypes: ["User"],
   endpoints: (builder) => ({
-    login: builder.mutation<AuthResponse, LoginRequest>({
-      query: (credentials) => ({
-        url: "/login",
+    getUserProfile: builder.query<AuthResponse, void>({
+      query: () => ({
+        url: "/profile",
+        method: "GET",
+      }),
+      //providesTags: ["User"],
+    }),
+    login: builder.mutation<AuthResponse, null>({
+      query: () => ({
+        url: "/profile",
         method: "POST",
-        body: credentials,
+        //body: credentials,
       }),
     }),
-    signup: builder.mutation<AuthResponse, SignupRequest>({
-      query: (userData) => ({
-        url: "/signup",
-        method: "POST",
-        body: userData,
-      }),
-    }),
+    // signup: builder.mutation<AuthResponse, SignupRequest>({
+    //   query: (userData) => ({
+    //     url: "/signup",
+    //     method: "POST",
+    //     body: userData,
+    //   }),
+    // }),
     forgotPassword: builder.mutation<{ message: string }, { email: string }>({
       query: (data) => ({
         url: "/forgot-password",
@@ -62,7 +73,7 @@ export const authApi = createApi({
     updateProfile: builder.mutation<User, Partial<User>>({
       query: (userData) => ({
         url: "/profile",
-        method: "PUT",
+        method: "PATCH",
         body: userData,
       }),
       invalidatesTags: ["User"],
@@ -70,4 +81,4 @@ export const authApi = createApi({
   }),
 })
 
-export const { useLoginMutation, useSignupMutation, useForgotPasswordMutation, useUpdateProfileMutation } = authApi
+export const { useLoginMutation, useGetUserProfileQuery, useForgotPasswordMutation, useUpdateProfileMutation } = authApi

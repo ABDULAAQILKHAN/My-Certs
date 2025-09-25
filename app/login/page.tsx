@@ -9,6 +9,7 @@ import { useAppDispatch, useAppSelector } from "@/lib/hooks"
 import { setCredentials } from "@/lib/slices/authSlice"
 import { Eye, EyeOff, Award, Loader2 } from "lucide-react"
 import { signIn } from "@/lib/auth"
+import { useLoginMutation } from "@/lib/api/authApi"
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -18,6 +19,7 @@ export default function LoginPage() {
   const router = useRouter()
   const dispatch = useAppDispatch()
   const { isAuthenticated } = useAppSelector((state) => state.auth)
+  const [login] = useLoginMutation()
 
   useEffect(() => {
     console.log("isAuthenticated login", isAuthenticated)
@@ -36,15 +38,21 @@ export default function LoginPage() {
     setIsLoading(true)
     try {
       const {data, error} = await signIn( email, password )
-      console.log(data)
+
       if(error){
         setError(error)
         return
       }
       const user = data.user.user_metadata;
       const token = data.session.access_token;
+      
       dispatch(setCredentials({user,token}))
-      router.push("/")
+      
+      const res = await login(null).unwrap()
+      // console.log("Login response:", res)
+      if(res.statusCode === 409 || res.statusCode === 201){
+        router.push("/")
+      }
     } catch (err: any) {
       setError(err.data?.message || "Login failed")
     }finally{

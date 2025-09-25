@@ -1,6 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit"
 import { setupListeners } from "@reduxjs/toolkit/query"
 import { mockAuthApi } from "./api/mockAuthApi"
+import {authApi} from "./api/authApi"
 import { mockCertificatesApi } from "./api/mockCertificatesApi"
 import authReducer from "./slices/authSlice"
 import themeReducer from "./slices/themeSlice"
@@ -9,11 +10,11 @@ export const store = configureStore({
   reducer: {
     auth: authReducer,
     theme: themeReducer,
-    [mockAuthApi.reducerPath]: mockAuthApi.reducer,
+    [authApi.reducerPath]: authApi.reducer,
     [mockCertificatesApi.reducerPath]: mockCertificatesApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(mockAuthApi.middleware, mockCertificatesApi.middleware),
+    getDefaultMiddleware().concat(authApi.middleware ,mockCertificatesApi.middleware),
 })
 
 setupListeners(store.dispatch)

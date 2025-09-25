@@ -2,31 +2,89 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useAppSelector } from "@/lib/hooks"
-import { useUpdateProfileMutation } from "@/lib/api/mockAuthApi"
+import { useUpdateProfileMutation } from "@/lib/api/authApi"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { User, Mail, Phone, Save, Loader2, Camera } from "lucide-react"
-
+import { useGetUserProfileQuery } from "@/lib/api/authApi"
 export default function ProfilePage() {
-  const { user } = useAppSelector((state) => state.auth)
+  const { user, token } = useAppSelector((state) => state.auth)
   const [updateProfile, { isLoading }] = useUpdateProfileMutation()
-
+const { data: profileData, isLoading: isUserLoading, error: userError} = useGetUserProfileQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+    skip: !token,
+    refetchOnReconnect: true,
+  })
   const [formData, setFormData] = useState({
+    id: user?.id || "",
     name: user?.name || "",
     email: user?.email || "",
     phone: user?.phone || "",
   })
+  useEffect(() => {
+    if (profileData && profileData?.statusCode === 200) {
+      console.log("Profile Data:", profileData)
+      const data = profileData.data;
+      if(!data) return
+      setFormData({
+        id: data.id,
+        name: data.name || "",
+        email: data.email || "",
+        phone: data.phone || "",
+      })
+    }
+    if (userError) {
+      console.error("Error fetching profile:", userError)
+    }
+  }, [profileData, token, userError])
   const [message, setMessage] = useState("")
   const [error, setError] = useState("")
+function formatIndianNumber(input: string): string {
+  // Remove all non-digit characters
+  let digits = input.replace(/\D/g, '');
 
+  // Remove leading 0 if present
+  if (digits.startsWith('0')) {
+    digits = digits.slice(1);
+  }
+
+  // Ensure only 10 digits
+  if (digits.length > 10) {
+    digits = digits.slice(-10); // take last 10 digits
+  } else if (digits.length < 10) {
+    console.log('Invalid number: must have 10 digits');
+  }
+
+  // Return with +91 prefix
+  return `+91 ${digits}`;
+}
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
     setMessage("")
-
+    if(!formData.name || !formData.email || !formData.phone){
+      setError("Please fill all the fields!")
+      return
+    }
+    if(formData.phone.length < 10){
+      setError("Please enter a valid phone number!")
+      return
+    }
+    formData.phone = formatIndianNumber(formData.phone);
     try {
-      await updateProfile(formData).unwrap()
+      const payload = {
+        name: formData.name,
+        //email: formData.email,
+        phone: formData.phone,
+        //id: formData.id,
+      }
+      const response = await updateProfile(payload).unwrap()
+      console.log("Update response:", response)
+      if (!response) {
+        setError("Failed to update profile")
+        return
+      }
       setMessage("Profile updated successfully!")
       setTimeout(() => setMessage(""), 3000)
     } catch (err: any) {
@@ -35,7 +93,14 @@ export default function ProfilePage() {
   }
 
   const breadcrumbs = [{ label: "Dashboard", href: "/dashboard" }, { label: "Profile" }]
-
+  if (isUserLoading) {
+    return (
+      <div className="h-screen text-center flex flex-col justify-center relative z-10">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+        <p className="mt-4 text-gray-600 dark:text-gray-400">Loading Profile...</p>
+      </div>
+    )
+  }
   return (
     <DashboardLayout breadcrumbs={breadcrumbs}>
       <div className="max-w-4xl mx-auto">
@@ -109,11 +174,12 @@ export default function ProfilePage() {
                     Email Address
                   </label>
                   <input
+                    disabled
                     type="email"
                     id="email"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary focus:border-primary"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50 focus:outline-none focus:ring-primary focus:border-primary"
                     placeholder="Enter your email address"
                   />
                 </div>
