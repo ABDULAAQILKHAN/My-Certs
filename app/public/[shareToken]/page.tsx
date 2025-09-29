@@ -1,13 +1,23 @@
 "use client"
 
 import { useParams } from "next/navigation"
-import { useGetPublicCertificateQuery } from "@/lib/api/mockCertificatesApi"
+import { useEffect, useState } from "react"
+import { useGetPublicCertificateQuery } from "@/lib/api/certificatesApi"
 import { Calendar, Building, Hash, Award, Loader2 } from "lucide-react"
 
 export default function PublicCertificatePage() {
   const params = useParams()
-  const { data: certificate, isLoading, error } = useGetPublicCertificateQuery(params.shareToken as string)
-
+  const credentialId = params.shareToken
+  const [certificate, setCertificate] = useState<any>(null);
+  const { data, isLoading, error } = useGetPublicCertificateQuery(credentialId as string,{
+    skip: !credentialId,
+    refetchOnMountOrArgChange: true,
+  })
+  useEffect(() => {
+    if (data) {
+      setCertificate(data);
+    }
+  }, [data]);
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-sky-50 to-blue-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
@@ -57,7 +67,7 @@ export default function PublicCertificatePage() {
           <div className="lg:col-span-2">
             <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl shadow-xl overflow-hidden border border-gray-200/50 dark:border-gray-700/50">
               <img
-                src={certificate.imageUrl || "/placeholder.svg?height=600&width=800"}
+                src={certificate.image || "/placeholder.svg?height=600&width=800"}
                 alt={certificate.title}
                 className="w-full h-auto"
               />
@@ -119,7 +129,7 @@ export default function PublicCertificatePage() {
             </div>
 
             {/* Skills */}
-            {certificate.skills.length > 0 && (
+            {/* {certificate.skills.length > 0 && (
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Skills & Technologies</h3>
                 <div className="flex flex-wrap gap-2">
@@ -133,7 +143,7 @@ export default function PublicCertificatePage() {
                   ))}
                 </div>
               </div>
-            )}
+            )} */}
 
             {/* Verification Badge */}
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 text-center">
@@ -151,7 +161,7 @@ export default function PublicCertificatePage() {
         {/* Footer */}
         <div className="text-center mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Powered by <span className="font-semibold text-primary">My Certs</span>
+            Powered by <a href="https://solutions-with-aaqil.vercel.app/" target="_" className="font-semibold text-primary underline hover:opacity-30">Solutions with AAQIL</a>
           </p>
         </div>
       </div>

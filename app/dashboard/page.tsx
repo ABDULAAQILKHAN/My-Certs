@@ -1,14 +1,16 @@
 "use client"
 
-import { useState } from "react"
+import { useState , useEffect} from "react"
 import { useRouter } from "next/navigation"
-import { useGetCertificatesQuery } from "@/lib/api/mockCertificatesApi"
+import { useGetCertificatesQuery,Certificate } from "@/lib/api/certificatesApi"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { CertificateCard } from "@/components/certificate-card"
 import { Search, Plus, Loader2 } from "lucide-react"
-
+import { ShareModal } from "@/components/share-modal"
 export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState("")
+  const [sharedCertificate, setSharedCertificate] = useState<Certificate | null>(null)
+
   const router = useRouter()
 
   const {
@@ -18,7 +20,9 @@ export default function DashboardPage() {
   } = useGetCertificatesQuery({
     search: searchQuery,
   })
-
+  useEffect(() => {
+  console.log("shared cert", sharedCertificate)
+}, [sharedCertificate])
   const breadcrumbs = [{ label: "Dashboard" }]
 
   return (
@@ -39,7 +43,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Search Bar */}
-      <div className="mb-8">
+      {/* <div className="mb-8">
         <div className="relative max-w-md">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <Search className="h-5 w-5 text-gray-400" />
@@ -52,7 +56,7 @@ export default function DashboardPage() {
             className="block w-full pl-10 pr-3 py-2 border border-gray-300/50 dark:border-gray-600/50 rounded-md leading-5 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary"
           />
         </div>
-      </div>
+      </div> */}
 
       {/* Certificates Grid */}
       {isLoading ? (
@@ -67,9 +71,10 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {certificates.map((certificate) => (
             <CertificateCard
-              key={certificate.id}
+              key={certificate.credentialId}
               certificate={certificate}
-              onClick={() => router.push(`/preview/${certificate.id}`)}
+              setSharedCertificate={setSharedCertificate}
+              onClick={() => router.push(`/preview/${certificate.credentialId}`)}
             />
           ))}
         </div>
@@ -102,6 +107,8 @@ export default function DashboardPage() {
           )}
         </div>
       )}
+      {/* Share Modal */}
+      {sharedCertificate && <ShareModal certificate={sharedCertificate} onClose={() => setSharedCertificate(null)} />}
     </DashboardLayout>
   )
 }

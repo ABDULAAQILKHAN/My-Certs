@@ -12,7 +12,7 @@ interface ShareModalProps {
 export function ShareModal({ certificate, onClose }: ShareModalProps) {
   const [copied, setCopied] = useState(false)
 
-  const shareUrl = `${window.location.origin}/public/${certificate.shareToken}`
+  const shareUrl = `${window.location.origin}/public/${certificate.credentialId}`
 
   const handleCopyLink = async () => {
     try {

@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { useCreateCertificateMutation } from "@/lib/api/mockCertificatesApi"
+import { useCreateCertificateMutation } from "@/lib/api/certificatesApi"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { Upload, X, Plus, Loader2, Calendar, Building, FileText, Tag, Globe, Lock } from "lucide-react"
 
@@ -20,8 +20,12 @@ export default function UploadPage() {
   })
   const [skills, setSkills] = useState<string[]>([])
   const [newSkill, setNewSkill] = useState("")
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  // highlight-start
+  // State to store the Base64 string of the image
+  const [imageBase64, setImageBase64] = useState<string>("")
+  // State to hold the original file name for display purposes
+  const [fileName, setFileName] = useState<string | null>(null)
+  // highlight-end
   const [error, setError] = useState("")
 
   const router = useRouter()
@@ -30,25 +34,23 @@ export default function UploadPage() {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      if (file.size > 10 * 1024 * 1024) {
-        // 10MB limit
+      if (file.size > 10 * 1024 * 1024) { // 10MB limit
         setError("File size must be less than 10MB")
         return
       }
-
       if (!file.type.startsWith("image/")) {
         setError("Please select an image file")
         return
       }
 
-      setSelectedFile(file)
+      setFileName(file.name) // Store the file name
       setError("")
 
       const reader = new FileReader()
-      reader.onload = (e) => {
-        setPreviewUrl(e.target?.result as string)
+      reader.onload = (event) => {
+        setImageBase64(event.target?.result as string)
       }
-      reader.readAsDataURL(file)
+      reader.readAsDataURL(file) // This is the key function
     }
   }
 
@@ -71,38 +73,32 @@ export default function UploadPage() {
       setError("Please enter a certificate title")
       return
     }
-
     if (!formData.issuer.trim()) {
       setError("Please enter the issuer name")
       return
     }
-
     if (!formData.issueDate) {
       setError("Please enter the issue date")
       return
     }
 
     try {
-      const submitData = new FormData()
-      if (selectedFile) {
-        submitData.append("image", selectedFile)
+      const payload = {
+        ...formData,
+        //skills,
+        image: imageBase64,
       }
-      submitData.append("title", formData.title)
-      submitData.append("description", formData.description)
-      submitData.append("issuer", formData.issuer)
-      submitData.append("issueDate", formData.issueDate)
-      submitData.append("expiryDate", formData.expiryDate)
-      submitData.append("credentialId", formData.credentialId)
-      submitData.append("isPublic", formData.isPublic.toString())
-      submitData.append("skills", JSON.stringify(skills))
 
-      await createCertificate(submitData).unwrap()
+      const response = await createCertificate(payload).unwrap()
+      if (response.statusCode !== 201) {
+        setError(response.message || "Failed to upload certificate")
+        return
+      }
       router.push("/dashboard")
     } catch (err: any) {
       setError(err.data?.message || "Failed to upload certificate")
     }
   }
-
   const breadcrumbs = [{ label: "Dashboard", href: "/dashboard" }, { label: "Upload Certificate" }]
 
   return (
@@ -128,7 +124,7 @@ export default function UploadPage() {
                   Certificate Image (Optional)
                 </label>
 
-                {!previewUrl ? (
+                {!imageBase64 ? (
                   <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center hover:border-primary transition-colors">
                     <input
                       type="file"
@@ -148,15 +144,15 @@ export default function UploadPage() {
                 ) : (
                   <div className="relative">
                     <img
-                      src={previewUrl || "/placeholder.svg"}
+                      src={imageBase64 || "/placeholder.svg"}
                       alt="Certificate preview"
                       className="w-full max-w-md mx-auto rounded-lg shadow-md"
                     />
                     <button
                       type="button"
                       onClick={() => {
-                        setSelectedFile(null)
-                        setPreviewUrl(null)
+                        setFileName(null)
+                        setImageBase64("")
                       }}
                       className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
                     >
@@ -268,7 +264,7 @@ export default function UploadPage() {
               </div>
 
               {/* Skills */}
-              <div className="mt-6">
+              {/* <div className="mt-6">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   <Tag className="inline h-4 w-4 mr-1" />
                   Skills & Technologies
@@ -309,7 +305,7 @@ export default function UploadPage() {
                     <Plus className="h-4 w-4" />
                   </button>
                 </div>
-              </div>
+              </div> */}
 
               {/* Privacy Settings */}
               <div className="mt-6">

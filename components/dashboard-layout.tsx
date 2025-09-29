@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useEffect, useState } from "react"
 
 import { useAppSelector } from "@/lib/hooks"
 import { AppSidebar } from "./app-sidebar"
@@ -20,7 +20,17 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children, title, breadcrumbs }: DashboardLayoutProps) {
-  const { isAuthenticated } = useAppSelector((state) => state.auth)
+  const { isAuthenticated, isInitialized } = useAppSelector((state) => state.auth)
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  // Prevent hydration mismatch by not rendering until mounted
+  if (!isMounted || !isInitialized) {
+    return <>{children}</>
+  }
 
   if (!isAuthenticated) {
     return <>{children}</>

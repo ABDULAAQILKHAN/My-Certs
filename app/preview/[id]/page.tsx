@@ -2,10 +2,10 @@
 
 import { useState } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { useGetCertificateQuery } from "@/lib/api/mockCertificatesApi"
+import { useGetCertificateQuery, useDeleteCertificateMutation } from "@/lib/api/certificatesApi"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { ShareModal } from "@/components/share-modal"
-import { ArrowLeft, Share2, Download, Calendar, Building, Hash, Globe, Lock, Loader2 } from "lucide-react"
+import { ArrowLeft, Share2, Download, Calendar, Building, Hash, Globe, Lock, Loader2, Trash } from "lucide-react"
 
 export default function PreviewPage() {
   const params = useParams()
@@ -13,6 +13,7 @@ export default function PreviewPage() {
   const [showShareModal, setShowShareModal] = useState(false)
 
   const { data: certificate, isLoading, error } = useGetCertificateQuery(params.id as string)
+  const [deleteCertificate, {isLoading: isDeleteLoading}]= useDeleteCertificateMutation()
 
   if (isLoading) {
     return (
@@ -38,14 +39,29 @@ export default function PreviewPage() {
   }
 
   const handleDownload = () => {
+    if ( !certificate.image ) return
     const link = document.createElement("a")
-    link.href = certificate.imageUrl
+    link.href = certificate.image
     link.download = `${certificate.title}.jpg`
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
   }
 
+  const handleDelete = () => {
+    if (!certificate || !certificate.credentialId) return
+    if (confirm("Are you sure you want to delete this certificate? This action cannot be undone.")) {
+      deleteCertificate(certificate.credentialId)
+        .unwrap()
+        .then(() => {
+          router.push("/dashboard")
+        })
+        .catch((err) => {
+          console.error("Failed to delete certificate:", err)
+          alert("Failed to delete certificate. Please try again.")
+        })
+    }
+  }
   const breadcrumbs = [{ label: "Dashboard", href: "/dashboard" }, { label: "Preview" }]
 
   return (
@@ -62,13 +78,13 @@ export default function PreviewPage() {
           </button>
 
           <div className="flex items-center space-x-3">
-            <button
+            {/* <button
               onClick={handleDownload}
               className="flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
               <Download className="h-4 w-4 mr-2" />
               Download
-            </button>
+            </button> */}
 
             {certificate.isPublic && (
               <button
@@ -79,6 +95,14 @@ export default function PreviewPage() {
                 Share
               </button>
             )}
+            <button
+              onClick={handleDelete}
+              disabled={isDeleteLoading}
+              className="flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-white dark:text-white bg-red-600 dark:bg-red-600 hover:bg-red-700 dark:hover:bg-red-700 transition-colors"
+            >
+              <Trash className="h-4 w-4 mr-2" />
+              {isDeleteLoading ? "Deleting..." : "Delete"}
+            </button>
           </div>
         </div>
 
@@ -87,7 +111,7 @@ export default function PreviewPage() {
           <div className="lg:col-span-2">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
               <img
-                src={certificate.imageUrl || "/placeholder.svg?height=600&width=800"}
+                src={certificate.image || "/placeholder.svg?height=600&width=800"}
                 alt={certificate.title}
                 className="w-full h-auto"
               />
@@ -158,7 +182,7 @@ export default function PreviewPage() {
             </div>
 
             {/* Skills */}
-            {certificate.skills.length > 0 && (
+            {/* {certificate.skills.length > 0 && (
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Skills & Technologies</h3>
                 <div className="flex flex-wrap gap-2">
@@ -172,7 +196,7 @@ export default function PreviewPage() {
                   ))}
                 </div>
               </div>
-            )}
+            )} */}
 
             {/* Certificate Info */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">

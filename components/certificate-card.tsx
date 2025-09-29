@@ -8,14 +8,15 @@ import { Calendar, Building, Eye, Share2 } from "lucide-react"
 interface CertificateCardProps {
   certificate: Certificate
   onClick: () => void
+  setSharedCertificate?: (certificate: Certificate) => void
 }
 
-export function CertificateCard({ certificate, onClick }: CertificateCardProps) {
+export function CertificateCard({ certificate, onClick, setSharedCertificate }: CertificateCardProps) {
   const handleShare = (e: React.MouseEvent) => {
     e.stopPropagation()
-    const shareUrl = `${window.location.origin}/public/${certificate.shareToken}`
+    const shareUrl = `${window.location.origin}/public/${certificate.credentialId}`
     navigator.clipboard.writeText(shareUrl)
-    // You could add a toast notification here
+    setSharedCertificate?.(certificate)
   }
 
   return (
@@ -25,7 +26,7 @@ export function CertificateCard({ certificate, onClick }: CertificateCardProps) 
     >
       <div className="aspect-video bg-gray-100 dark:bg-gray-700 relative overflow-hidden">
         <img
-          src={certificate.imageUrl || "/placeholder.svg?height=200&width=300"}
+          src={certificate.image || "/placeholder.svg?height=200&width=300"}
           alt={certificate.title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
         />
@@ -67,7 +68,7 @@ export function CertificateCard({ certificate, onClick }: CertificateCardProps) 
           </div>
         </div>
 
-        {certificate.skills.length > 0 && (
+        {/* {certificate.skills.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-1">
             {certificate.skills.slice(0, 3).map((skill, index) => (
               <span
@@ -83,7 +84,7 @@ export function CertificateCard({ certificate, onClick }: CertificateCardProps) 
               </span>
             )}
           </div>
-        )}
+        )} */}
       </div>
     </div>
   )

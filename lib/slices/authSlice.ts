@@ -32,34 +32,40 @@ const authSlice = createSlice({
       state.isAuthenticated = true
       state.isInitialized = true
 
-      // Persist to localStorage
-      localStorage.setItem("mycerts_token", action.payload.token)
-      localStorage.setItem("mycerts_current_user", JSON.stringify(action.payload.user))
+      // Persist to localStorage (only on client side)
+      if (typeof window !== 'undefined') {
+        localStorage.setItem("mycerts_token", action.payload.token)
+        localStorage.setItem("mycerts_current_user", JSON.stringify(action.payload.user))
+      }
     },
     logout: (state) => {
       state.user = null
       state.token = null
       state.isAuthenticated = false
       state.isInitialized = true
-      // Clear localStorage
-      localStorage.removeItem("mycerts_token")
-      localStorage.removeItem("mycerts_current_user")
+      // Clear localStorage (only on client side)
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem("mycerts_token")
+        localStorage.removeItem("mycerts_current_user")
+      }
     },
     initializeAuth: (state) => {
-      // Check for existing session
-      const token = localStorage.getItem("mycerts_token")
-      const userStr = localStorage.getItem("mycerts_current_user")
+      // Check for existing session only on client side
+      if (typeof window !== 'undefined') {
+        const token = localStorage.getItem("mycerts_token")
+        const userStr = localStorage.getItem("mycerts_current_user")
 
-      if (token && userStr) {
-        try {
-          const user = JSON.parse(userStr)
-          state.user = user
-          state.token = token
-          state.isAuthenticated = true
-        } catch (error) {
-          // Clear invalid data
-          localStorage.removeItem("mycerts_token")
-          localStorage.removeItem("mycerts_current_user")
+        if (token && userStr) {
+          try {
+            const user = JSON.parse(userStr)
+            state.user = user
+            state.token = token
+            state.isAuthenticated = true
+          } catch (error) {
+            // Clear invalid data
+            localStorage.removeItem("mycerts_token")
+            localStorage.removeItem("mycerts_current_user")
+          }
         }
       }
       state.isInitialized = true
