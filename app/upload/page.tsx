@@ -126,14 +126,14 @@ export default function UploadPage() {
   const breadcrumbs = [{ label: "Dashboard", href: "/dashboard" }, { label: "Upload Certificate" }]
 
   return (
-    <DashboardLayout breadcrumbs={breadcrumbs}>
-      <div className="max-w-4xl mx-auto">
+<DashboardLayout breadcrumbs={breadcrumbs}>
+      <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Upload Certificate</h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">Add a new certificate to your collection</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit}>
           <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-lg rounded-lg overflow-hidden border border-gray-200/50 dark:border-gray-700/50">
             <div className="p-6">
               {error && (
@@ -142,248 +142,202 @@ export default function UploadPage() {
                 </div>
               )}
 
-              {/* File Upload */}
-              <div className="mb-8">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
-                  Certificate Image (Optional)
-                </label>
-
-                {!imageBase64 ? (
-                  <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center hover:border-primary transition-colors">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileSelect}
-                      className="hidden"
-                      id="file-upload"
-                    />
-                    <label htmlFor="file-upload" className="cursor-pointer">
-                      <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                      <p className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                        Click to upload certificate image
-                      </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">PNG, JPG, GIF up to 10MB (Optional)</p>
-                    </label>
-                  </div>
-                ) : (
-                  <div className="relative">
-                    <img
-                      src={imageBase64 || "/placeholder.svg"}
-                      alt="Certificate preview"
-                      className="w-full max-w-md mx-auto rounded-lg shadow-md"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setImageBase64("")
-                        setFile(null)
-                      }}
-                      className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Certificate Details */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="md:col-span-2">
-                  <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    <FileText className="inline h-4 w-4 mr-1" />
-                    Certificate Title *
+              {/* Main responsive container */}
+              <div className="grid grid-cols-1 md:grid-cols-5 md:gap-x-8 lg:gap-x-12">
+                {/* --- LEFT COLUMN (Image Upload) --- */}
+                <div className="md:col-span-3 col-span-2 mb-8 md:mb-0">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
+                    Certificate Image
                   </label>
-                  <input
-                    type="text"
-                    id="title"
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary focus:border-primary"
-                    placeholder="e.g., AWS Certified Solutions Architect"
-                  />
-                </div>
 
-                <div className="md:col-span-2">
-                  <label
-                    htmlFor="description"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                  >
-                    Description
-                  </label>
-                  <textarea
-                    id="description"
-                    rows={3}
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary focus:border-primary"
-                    placeholder="Brief description of the certificate..."
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="issuer" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    <Building className="inline h-4 w-4 mr-1" />
-                    Issuer *
-                  </label>
-                  <input
-                    type="text"
-                    id="issuer"
-                    value={formData.issuer}
-                    onChange={(e) => setFormData({ ...formData, issuer: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary focus:border-primary"
-                    placeholder="e.g., Amazon Web Services"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="credentialId"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                  >
-                    Credential ID
-                  </label>
-                  <input
-                    type="text"
-                    id="credentialId"
-                    value={formData.credentialId}
-                    onChange={(e) => setFormData({ ...formData, credentialId: e.target.value })}
-                    className={`w-full px-3 py-2 border ${isCredentialValid? "border-gray-300 dark:border-gray-600" : "border-2 border-red-600 dark:border-red-600" }rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary focus:border-primary`}
-                    placeholder="Certificate ID or verification code"
-                  />
-                  {!isCredentialValid && (
-                    <p className="text-sm text-red-600 dark:text-red-400 mt-1">Credential ID already present</p>
+                  {!imageBase64 ? (
+                    <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center hover:border-primary transition-colors h-full flex flex-col justify-center">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileSelect}
+                        className="hidden"
+                        id="file-upload"
+                      />
+                      <label htmlFor="file-upload" className="cursor-pointer">
+                        <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                        <p className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                          Click to upload
+                        </p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">PNG, JPG up to 10MB</p>
+                      </label>
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      <img
+                        src={imageBase64 || "/placeholder.svg"}
+                        alt="Certificate preview"
+                        className="w-full rounded-lg shadow-md aspect-[4/3] object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setImageBase64("")
+                          setFile(null)
+                        }}
+                        className="absolute top-2 right-2 p-1.5 bg-red-600 text-white rounded-full hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white transition-colors"
+                        aria-label="Remove image"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
                   )}
                 </div>
 
-                <div>
-                  <label
-                    htmlFor="issueDate"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                  >
-                    <Calendar className="inline h-4 w-4 mr-1" />
-                    Issue Date *
-                  </label>
-                  <input
-                    type="date"
-                    id="issueDate"
-                    value={formData.issueDate}
-                    onChange={(e) => setFormData({ ...formData, issueDate: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary focus:border-primary"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="expiryDate"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                  >
-                    <Calendar className="inline h-4 w-4 mr-1" />
-                    Expiry Date
-                  </label>
-                  <input
-                    type="date"
-                    id="expiryDate"
-                    value={formData.expiryDate}
-                    onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary focus:border-primary"
-                  />
-                </div>
-              </div>
-
-              {/* Skills */}
-              {/* <div className="mt-6">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  <Tag className="inline h-4 w-4 mr-1" />
-                  Skills & Technologies
-                </label>
-
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {skills.map((skill, index) => (
-                    <span
-                      key={index}
-                      className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary/10 text-primary"
-                    >
-                      {skill}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveSkill(skill)}
-                        className="ml-2 text-primary/60 hover:text-primary"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={newSkill}
-                    onChange={(e) => setNewSkill(e.target.value)}
-                    onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), handleAddSkill())}
-                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary focus:border-primary"
-                    placeholder="Add a skill..."
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddSkill}
-                    className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </button>
-                </div>
-              </div> */}
-
-              {/* Privacy Settings */}
-              <div className="mt-6">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                  Privacy Settings
-                </label>
-                <div className="space-y-3">
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="privacy"
-                      checked={formData.isPublic}
-                      onChange={() => setFormData({ ...formData, isPublic: true })}
-                      className="h-4 w-4 text-primary focus:ring-primary border-gray-300 dark:border-gray-600"
-                    />
-                    <div className="ml-3">
-                      <div className="flex items-center">
-                        <Globe className="h-4 w-4 text-green-500 mr-2" />
-                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Public</span>
-                      </div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Anyone with the link can view this certificate
-                      </p>
+                {/* --- RIGHT COLUMN (Form Fields) --- */}
+                <div className="md:col-span-2 space-y-6">
+                  {/* Certificate Details */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-center">
+                    <div className="sm:col-span-2">
+                      <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <FileText className="inline h-4 w-4 mr-1" />
+                        Certificate Title *
+                      </label>
+                      <input
+                        type="text"
+                        id="title"
+                        value={formData.title}
+                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary focus:border-primary"
+                        placeholder="e.g., AWS Certified Solutions Architect"
+                        required
+                      />
                     </div>
-                  </label>
 
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="privacy"
-                      checked={!formData.isPublic}
-                      onChange={() => setFormData({ ...formData, isPublic: false })}
-                      className="h-4 w-4 text-primary focus:ring-primary border-gray-300 dark:border-gray-600"
-                    />
-                    <div className="ml-3">
-                      <div className="flex items-center">
-                        <Lock className="h-4 w-4 text-gray-500 mr-2" />
-                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Private</span>
-                      </div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Only you can view this certificate</p>
+                    <div className="sm:col-span-2">
+                      <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Description
+                      </label>
+                      <textarea
+                        id="description"
+                        rows={3}
+                        value={formData.description}
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary focus:border-primary"
+                        placeholder="Brief description of the certificate..."
+                      />
                     </div>
-                  </label>
+
+                    <div>
+                      <label htmlFor="issuer" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <Building className="inline h-4 w-4 mr-1" />
+                        Issuer *
+                      </label>
+                      <input
+                        type="text"
+                        id="issuer"
+                        value={formData.issuer}
+                        onChange={(e) => setFormData({ ...formData, issuer: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary focus:border-primary"
+                        placeholder="e.g., Amazon Web Services"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="credentialId" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Credential ID
+                      </label>
+                      <input
+                        type="text"
+                        id="credentialId"
+                        value={formData.credentialId}
+                        onChange={(e) => setFormData({ ...formData, credentialId: e.target.value })}
+                        className={`w-full px-3 py-2 border ${isCredentialValid ? "border-gray-300 dark:border-gray-600" : "border-2 border-red-600 dark:border-red-600"} rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary focus:border-primary`}
+                        placeholder="Certificate ID or verification code"
+                      />
+                      {!isCredentialValid && (
+                        <p className="text-sm text-red-600 dark:text-red-400 mt-1">Credential ID already present</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label htmlFor="issueDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <Calendar className="inline h-4 w-4 mr-1" />
+                        Issue Date *
+                      </label>
+                      <input
+                        type="date"
+                        id="issueDate"
+                        value={formData.issueDate}
+                        onChange={(e) => setFormData({ ...formData, issueDate: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary focus:border-primary"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="expiryDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <Calendar className="inline h-4 w-4 mr-1" />
+                        Expiry Date
+                      </label>
+                      <input
+                        type="date"
+                        id="expiryDate"
+                        value={formData.expiryDate}
+                        onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary focus:border-primary"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Privacy Settings */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                      Privacy Settings
+                    </label>
+                    <div className="space-y-3">
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          name="privacy"
+                          checked={formData.isPublic}
+                          onChange={() => setFormData({ ...formData, isPublic: true })}
+                          className="h-4 w-4 text-primary focus:ring-primary border-gray-300 dark:border-gray-600"
+                        />
+                        <div className="ml-3">
+                          <div className="flex items-center">
+                            <Globe className="h-4 w-4 text-green-500 mr-2" />
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Public</span>
+                          </div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            Anyone with the link can view this certificate
+                          </p>
+                        </div>
+                      </label>
+
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          name="privacy"
+                          checked={!formData.isPublic}
+                          onChange={() => setFormData({ ...formData, isPublic: false })}
+                          className="h-4 w-4 text-primary focus:ring-primary border-gray-300 dark:border-gray-600"
+                        />
+                        <div className="ml-3">
+                          <div className="flex items-center">
+                            <Lock className="h-4 w-4 text-gray-500 mr-2" />
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Private</span>
+                          </div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Only you can view this certificate</p>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600 flex justify-end space-x-3">
+            <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700 flex justify-end space-x-3">
               <button
                 type="button"
                 onClick={() => router.push("/dashboard")}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
+                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
               >
                 Cancel
               </button>
