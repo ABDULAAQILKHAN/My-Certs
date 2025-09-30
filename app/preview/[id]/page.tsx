@@ -1,19 +1,41 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { useGetCertificateQuery, useDeleteCertificateMutation } from "@/lib/api/certificatesApi"
+import { useGetCertificateQuery, useDeleteCertificateMutation, useToggleCertificateVisibilityMutation } from "@/lib/api/certificatesApi"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { ShareModal } from "@/components/share-modal"
 import { ArrowLeft, Share2, Download, Calendar, Building, Hash, Globe, Lock, Loader2, Trash } from "lucide-react"
 import { deleteImage } from "@/lib/auth"
+import { Toggle } from "@/components/ui/toggle"
+import { Certificate } from "crypto"
 export default function PreviewPage() {
   const params = useParams()
   const router = useRouter()
+  let id = '';
+  // setTimeout(() => {
+  // }, 1000);
+    id = params.id as string
   const [showShareModal, setShowShareModal] = useState(false)
+  const [certificate, setCertificate] = useState<any>(null);
 
-  const { data: certificate, isLoading, error } = useGetCertificateQuery(params.id as string)
+  const { data, isLoading, error } = useGetCertificateQuery(
+    id as string, {
+      refetchOnFocus: true, 
+      skip: !id || id === '', 
+      refetchOnReconnect: true, 
+      refetchOnMountOrArgChange: true
+    })
+
   const [deleteCertificate, {isLoading: isDeleteLoading}]= useDeleteCertificateMutation()
+  const [toggleVisibility, { isLoading: isToggling }] = useToggleCertificateVisibilityMutation()
+  const [pendingVisibility, setPendingVisibility] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    if (data) {
+      setCertificate(data);
+    }
+  }, [data || id]);
 
   if (isLoading) {
     return (
@@ -93,7 +115,42 @@ export default function PreviewPage() {
               <Download className="h-4 w-4 mr-2" />
               Download
             </button> */}
-
+            {
+              //Toggle switch between public and private
+            }
+            {certificate && (
+              <Toggle
+                size="default"
+                pill
+                ariaLabel="Toggle certificate visibility"
+                pressed={pendingVisibility !== null ? pendingVisibility : certificate.isPublic}
+                onPressedChange={(next: boolean) => {
+                  if (!certificate.credentialId) return
+                  setPendingVisibility(next)
+                  toggleVisibility({ id: certificate.credentialId })
+                    .unwrap()
+                    .catch((err) => {
+                      console.error("Failed to toggle visibility", err)
+                      alert("Failed to update visibility. Please try again.")
+                      setPendingVisibility(null)
+                    })
+                    .then(() => {
+                      setPendingVisibility(null)
+                    })
+                }}
+                leadingIcon={
+                  isToggling ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (pendingVisibility !== null ? pendingVisibility : certificate.isPublic) ? (
+                    <Globe className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <Lock className="h-4 w-4 text-gray-500" />
+                  )
+                }
+                label={(on: boolean) => (on ? "Public" : "Private")}
+                disabled={isToggling}
+              />
+            )}
             {certificate.isPublic && (
               <button
                 onClick={() => setShowShareModal(true)}

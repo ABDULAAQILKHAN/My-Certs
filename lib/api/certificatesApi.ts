@@ -46,8 +46,8 @@ export const certificatesApi = createApi({
   reducerPath: "certificatesApi",
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_BACKEND_URL,
-    prepareHeaders: (headers, { getState }) => {
-      const token = (getState() as any).auth.token
+    prepareHeaders: async (headers, { getState }) => {
+      const token = await (getState() as any).auth.token
       if (token) {
         headers.set("authorization", `Bearer ${token}`)
       }
@@ -130,11 +130,11 @@ export const certificatesApi = createApi({
     }),
 
     // Toggle certificate visibility (public/private)
-    toggleCertificateVisibility: builder.mutation<Certificate, { id: string; isPublic: boolean }>({
-      query: ({ id, isPublic }) => ({
-        url: `/certificate/${id}/visibility`,
+    toggleCertificateVisibility: builder.mutation<Certificate, { id: string}>({
+      query: ({ id }) => ({
+        url: `/certificate/visibility/${id}`,
         method: "PATCH",
-        body: { isPublic },
+        //body: { isPublic },
       }),
       transformResponse: (response: ApiResponse<Certificate>) => response.data,
       invalidatesTags: ["Certificate"],
