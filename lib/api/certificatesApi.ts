@@ -5,6 +5,7 @@ export interface Certificate {
   title: string
   description: string
   image: string | null
+  imagePath?: string
   issuer: string
   issueDate: string
   expiryDate?: string
@@ -25,6 +26,7 @@ export interface CreateCertificateRequest {
   issueDate: string
   expiryDate?: string
   credentialId?: string
+  imagePath?: string
   //skills: string[]
   isPublic: boolean
 }
@@ -75,6 +77,16 @@ export const certificatesApi = createApi({
       transformResponse: (response: ApiResponse<Certificate>) => response.data,
       providesTags: ["Certificate"],
     }),
+
+    getCertificateValidity: builder.mutation<Certificate, string>({
+      query: (id) => ({
+        url: `/certificate/check-validitity/${id}`,
+        method: "POST",
+      }),
+      transformResponse: (response: ApiResponse<Certificate>) => response.data,
+      //providesTags: ["Certificate"],
+    }),
+
 
     // Get public certificate by share token
     getPublicCertificate: builder.query<Certificate, string>({
@@ -144,6 +156,7 @@ export const {
   useGetCertificatesQuery,
   useGetCertificateQuery,
   useGetPublicCertificateQuery,
+  useGetCertificateValidityMutation,
   useCreateCertificateMutation,
   useUpdateCertificateMutation,
   useDeleteCertificateMutation,
