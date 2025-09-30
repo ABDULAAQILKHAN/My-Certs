@@ -65,3 +65,42 @@ export async function signInWithOAuth(
 
   return { error: null };
 }
+
+export async function uploadImage(file: File) {
+  const fileName = `${Date.now()}-${file.name}`;
+
+  const { data, error } = await supabase.storage
+    .from("images") 
+    .upload(fileName, file, {
+      cacheControl: "3600",
+      upsert: false,
+    });
+
+  if (error) throw error;
+
+  return data.path;
+}
+
+export async function deleteImage(filePath: string) {
+ try {
+    const { data, error } = await supabase
+      .storage
+      .from('images') // Your bucket name
+      .remove([filePath]); // The path to the file in an array
+
+    if (error) {
+      console.error('Error deleting image:', error.message);
+      alert(`Error: ${error.message}`); // Optional: show error to the user
+      return null;
+    }
+
+    console.log('Successfully deleted image:', data);
+    alert('Image deleted successfully!'); // Optional: show success message
+    return data;
+
+  } catch (err) {
+    console.error('An unexpected error occurred:', err);
+    alert('An unexpected error occurred. Please try again.');
+    return null;
+  }
+}

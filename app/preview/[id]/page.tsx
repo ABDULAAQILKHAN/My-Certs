@@ -6,7 +6,7 @@ import { useGetCertificateQuery, useDeleteCertificateMutation } from "@/lib/api/
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { ShareModal } from "@/components/share-modal"
 import { ArrowLeft, Share2, Download, Calendar, Building, Hash, Globe, Lock, Loader2, Trash } from "lucide-react"
-
+import { deleteImage } from "@/lib/auth"
 export default function PreviewPage() {
   const params = useParams()
   const router = useRouter()
@@ -54,7 +54,15 @@ export default function PreviewPage() {
       deleteCertificate(certificate.credentialId)
         .unwrap()
         .then(() => {
-          router.push("/dashboard")
+          if (certificate.imagePath) {
+            deleteImage(certificate.imagePath)
+              .then((res) => {
+                console.log("Image deleted", res)
+                router.push("/dashboard")})
+              .catch((err) => console.error("Failed to delete image:", err))
+          } else{
+            router.push("/dashboard")
+          }
         })
         .catch((err) => {
           console.error("Failed to delete certificate:", err)

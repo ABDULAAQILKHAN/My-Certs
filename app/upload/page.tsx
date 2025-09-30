@@ -4,9 +4,10 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { useCreateCertificateMutation } from "@/lib/api/certificatesApi"
+import { useCreateCertificateMutation, useGetCertificateValidityMutation } from "@/lib/api/certificatesApi"
+import { uploadImage } from "@/lib/auth"
 import { DashboardLayout } from "@/components/dashboard-layout"
-import { Upload, X, Plus, Loader2, Calendar, Building, FileText, Tag, Globe, Lock } from "lucide-react"
+import { Upload, X, Loader2, Calendar, Building, FileText, Tag, Globe, Lock } from "lucide-react"
 
 export default function UploadPage() {
   const [formData, setFormData] = useState({
@@ -20,17 +21,14 @@ export default function UploadPage() {
   })
   const [skills, setSkills] = useState<string[]>([])
   const [newSkill, setNewSkill] = useState("")
-  // highlight-start
-  // State to store the Base64 string of the image
+  const [file, setFile] = useState<File | null>(null)
   const [imageBase64, setImageBase64] = useState<string>("")
-  // State to hold the original file name for display purposes
-  const [fileName, setFileName] = useState<string | null>(null)
-  // highlight-end
+  const [isCredentialValid, setIsCredentialValid] = useState<boolean>(true)
   const [error, setError] = useState("")
 
   const router = useRouter()
   const [createCertificate, { isLoading }] = useCreateCertificateMutation()
-
+  const [certificateValidity] = useGetCertificateValidityMutation()
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
@@ -42,8 +40,7 @@ export default function UploadPage() {
         setError("Please select an image file")
         return
       }
-
-      setFileName(file.name) // Store the file name
+      setFile(file)
       setError("")
 
       const reader = new FileReader()
@@ -81,20 +78,47 @@ export default function UploadPage() {
       setError("Please enter the issue date")
       return
     }
-
     try {
-      const payload = {
-        ...formData,
-        //skills,
-        image: imageBase64,
-      }
-
-      const response = await createCertificate(payload).unwrap()
-      if (response.statusCode !== 201) {
-        setError(response.message || "Failed to upload certificate")
+      const isValid = await certificateValidity(formData.credentialId)
+      console.log("isValid", isValid.data)
+      if (isValid.data) {
+        setIsCredentialValid(true)
+        console.log("Credential is valid")
+      } else {
+        setIsCredentialValid(false)
+        setError("Invalid Credential ID. Please check and try again.")
         return
       }
-      router.push("/dashboard")
+    
+
+    if (file) {
+      try {
+        const imagePath = await uploadImage(file)
+        const imageUrl = `${process.env.NEXT_PUBLIC_S3_BUCKET_URL}/${imagePath}`
+
+        if (!imagePath) {
+          setError("Failed to upload image. Please try again.")
+          return
+        }
+       const payload = {
+         ...formData,
+         //skills,
+         image: imageUrl,
+         imagePath,
+       }
+ 
+       const response = await createCertificate(payload).unwrap()
+       if (response.statusCode !== 201) {
+         setError(response.message || "Failed to upload certificate")
+         return
+       }
+       router.push("/dashboard")
+
+      } catch (uploadError) {
+        setError("Failed to upload image. Please try again.")
+        return
+      }
+    }
     } catch (err: any) {
       setError(err.data?.message || "Failed to upload certificate")
     }
@@ -151,8 +175,8 @@ export default function UploadPage() {
                     <button
                       type="button"
                       onClick={() => {
-                        setFileName(null)
                         setImageBase64("")
+                        setFile(null)
                       }}
                       className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
                     >
@@ -223,9 +247,12 @@ export default function UploadPage() {
                     id="credentialId"
                     value={formData.credentialId}
                     onChange={(e) => setFormData({ ...formData, credentialId: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary focus:border-primary"
+                    className={`w-full px-3 py-2 border ${isCredentialValid? "border-gray-300 dark:border-gray-600" : "border-2 border-red-600 dark:border-red-600" }rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary focus:border-primary`}
                     placeholder="Certificate ID or verification code"
                   />
+                  {!isCredentialValid && (
+                    <p className="text-sm text-red-600 dark:text-red-400 mt-1">Credential ID already present</p>
+                  )}
                 </div>
 
                 <div>
