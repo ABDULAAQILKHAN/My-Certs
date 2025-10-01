@@ -131,12 +131,13 @@ export async function updatePassword(newPassword: string): Promise<{ success: bo
 
 // Update basic profile metadata (name, phone)
 export async function updateUserProfile(
-  { name, phone }: { name?: string; phone?: string }
+  { name, phone, avatar }: { name?: string; phone?: string; avatar?: string }
 ): Promise<{ success: boolean; error: string | null }> {
   try {
     const payload: any = { data: {} as Record<string, any> }
     if (name !== undefined) payload.data.name = name
     if (phone !== undefined) payload.data.phone = phone
+    if (avatar !== undefined) payload.data.avatar = avatar
 
     const { error } = await supabase.auth.updateUser(payload)
     if (error) {
