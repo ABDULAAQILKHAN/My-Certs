@@ -8,19 +8,27 @@ import { useUpdateProfileMutation } from "@/lib/api/authApi"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { User, Mail, Phone, Save, Loader2, Camera } from "lucide-react"
 import { useGetUserProfileQuery } from "@/lib/api/authApi"
+import { updateUserProfile } from "@/lib/auth"
 export default function ProfilePage() {
   const { user, token } = useAppSelector((state) => state.auth)
-  const [updateProfile, { isLoading }] = useUpdateProfileMutation()
-const { data: profileData, isLoading: isUserLoading, error: userError} = useGetUserProfileQuery(undefined, {
-    refetchOnMountOrArgChange: true,
-    skip: !token,
-    refetchOnReconnect: true,
-  })
+  const [message, setMessage] = useState("")
+  const [error, setError] = useState("")
+  const [totalCertificates, setTotalCertificates] = useState(0)
+  const [publicCertificates, setPublicCertificates] = useState(0)
+  const [totalViews, setTotalViews] = useState(0)
   const [formData, setFormData] = useState({
     id: user?.id || "",
     name: user?.name || "",
     email: user?.email || "",
     phone: user?.phone || "",
+  })
+
+
+  const [updateProfile, { isLoading }] = useUpdateProfileMutation()
+  const { data: profileData, isLoading: isUserLoading, error: userError} = useGetUserProfileQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+    skip: !token,
+    refetchOnReconnect: true,
   })
   useEffect(() => {
     if (profileData && profileData?.statusCode === 200) {
@@ -33,13 +41,15 @@ const { data: profileData, isLoading: isUserLoading, error: userError} = useGetU
         email: data.email || "",
         phone: data.phone || "",
       })
+      setTotalCertificates(data.totalCertificates || 0)
+      setPublicCertificates(data.totalPublicCertificates || 0)
+      setTotalViews(data.totalViews || 0)
     }
     if (userError) {
       console.error("Error fetching profile:", userError)
     }
   }, [profileData, token, userError])
-  const [message, setMessage] = useState("")
-  const [error, setError] = useState("")
+
 function formatIndianNumber(input: string): string {
   // Remove all non-digit characters
   let digits = input.replace(/\D/g, '');
@@ -79,8 +89,16 @@ function formatIndianNumber(input: string): string {
         phone: formData.phone,
         //id: formData.id,
       }
+      const {success, error} = await updateUserProfile(payload)
+      if (error) {
+        setError(error)
+        return
+      }
+      if (!success) {
+        setError("Failed to update profile")
+        return
+      }
       const response = await updateProfile(payload).unwrap()
-      console.log("Update response:", response)
       if (!response) {
         setError("Failed to update profile")
         return
@@ -205,15 +223,15 @@ function formatIndianNumber(input: string): string {
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Account Statistics</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                    <p className="text-2xl font-bold text-primary">6</p>
+                    <p className="text-2xl font-bold text-primary">{totalCertificates}</p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">Total Certificates</p>
                   </div>
                   <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                    <p className="text-2xl font-bold text-primary">4</p>
+                    <p className="text-2xl font-bold text-primary">{publicCertificates}</p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">Public Certificates</p>
                   </div>
                   <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                    <p className="text-2xl font-bold text-primary">127</p>
+                    <p className="text-2xl font-bold text-primary">{totalViews}</p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">Total Views</p>
                   </div>
                 </div>

@@ -1,5 +1,6 @@
 import { createApi } from "@reduxjs/toolkit/query/react"
 import { baseQueryWithAuthHandling } from "./baseQuery"
+import { ApiResponse } from "./certificatesApi"
 
 export interface User {
   id: string
@@ -7,6 +8,11 @@ export interface User {
   name: string
   phone?: string
   avatar?: string
+  totalCertificates?: number
+  totalPublicCertificates?: number
+  totalViews?: number
+  createdAt: string
+  updatedAt: string
 }
 
 export interface LoginRequest {
@@ -62,6 +68,7 @@ export const authApi = createApi({
         body: data,
       }),
     }),
+
     updateProfile: builder.mutation<User, Partial<User>>({
       query: (userData) => ({
         url: "/profile",
@@ -70,7 +77,21 @@ export const authApi = createApi({
       }),
       invalidatesTags: ["User"],
     }),
+
+    getUserTheme: builder.query<ApiResponse<boolean>, null>({
+      query: () => ({
+        url: "/theme",
+        method: "GET",
+      }),
+    }),
+
+    updateTheme: builder.mutation<boolean, Partial<User>>({
+      query: () => ({
+        url: "/theme",
+        method: "PUT",
+      }),
+    }),
   }),
 })
 
-export const { useLoginMutation, useGetUserProfileQuery, useForgotPasswordMutation, useUpdateProfileMutation } = authApi
+export const { useLoginMutation, useGetUserProfileQuery, useForgotPasswordMutation, useUpdateProfileMutation, useUpdateThemeMutation, useGetUserThemeQuery} = authApi
