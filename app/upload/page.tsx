@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useCreateCertificateMutation, useGetCertificateValidityMutation } from "@/lib/api/certificatesApi"
 import { uploadImage } from "@/lib/auth"
@@ -25,7 +25,7 @@ export default function UploadPage() {
   const [imageBase64, setImageBase64] = useState<string>("")
   const [isCredentialValid, setIsCredentialValid] = useState<boolean>(true)
   const [error, setError] = useState("")
-
+  const [credentialId, setCredentialId] = useState("")
   const router = useRouter()
   const [createCertificate, { isLoading }] = useCreateCertificateMutation()
   const [certificateValidity] = useGetCertificateValidityMutation()
@@ -80,10 +80,8 @@ export default function UploadPage() {
     }
     try {
       const isValid = await certificateValidity(formData.credentialId)
-      console.log("isValid", isValid.data)
-      if (isValid.data) {
+      if (isValid) {
         setIsCredentialValid(true)
-        console.log("Credential is valid")
       } else {
         setIsCredentialValid(false)
         setError("Invalid Credential ID. Please check and try again.")
@@ -118,11 +116,41 @@ export default function UploadPage() {
         setError("Failed to upload image. Please try again.")
         return
       }
+    } else{
+      setError("Please select a certificate image to upload")
     }
     } catch (err: any) {
       setError(err.data?.message || "Failed to upload certificate")
     }
   }
+  useEffect(() => {
+    const validateCredential = async () => {
+      if (credentialId.trim()) {
+        try {
+          const isValid:boolean = await certificateValidity(credentialId).unwrap()
+          if(isValid)
+            setIsCredentialValid(isValid)
+          if (!isValid) {
+            //setError("Credential ID already present")
+            setIsCredentialValid(false)
+          } else {
+            //setError("")
+            setIsCredentialValid(true)
+          }
+        } catch (err) {
+          console.error("Error validating credential ID:", err)
+        }
+      } else {
+        setIsCredentialValid(true)
+        //setError("")
+      }
+    }
+    if(credentialId.length>4)
+    setTimeout(() => {
+      validateCredential()
+    }, 500);
+  }, [credentialId])
+
   const breadcrumbs = [{ label: "Dashboard", href: "/dashboard" }, { label: "Upload Certificate" }]
 
   return (
@@ -151,7 +179,7 @@ export default function UploadPage() {
                   </label>
 
                   {!imageBase64 ? (
-                    <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center hover:border-primary transition-colors h-full flex flex-col justify-center">
+                    <div className={`border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center hover:border-primary transition-colors h-[90%] flex flex-col justify-center`}>
                       <input
                         type="file"
                         accept="image/*"
@@ -247,7 +275,10 @@ export default function UploadPage() {
                         type="text"
                         id="credentialId"
                         value={formData.credentialId}
-                        onChange={(e) => setFormData({ ...formData, credentialId: e.target.value })}
+                        onChange={(e) => {
+                          setFormData({ ...formData, credentialId: e.target.value })
+                          setCredentialId(e.target.value)  
+                        }}
                         className={`w-full px-3 py-2 border ${isCredentialValid ? "border-gray-300 dark:border-gray-600" : "border-2 border-red-600 dark:border-red-600"} rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary focus:border-primary`}
                         placeholder="Certificate ID or verification code"
                       />

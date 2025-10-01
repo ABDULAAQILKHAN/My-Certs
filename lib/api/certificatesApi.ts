@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react"
+import { createApi } from "@reduxjs/toolkit/query/react"
+import { baseQueryWithAuthHandling } from "./baseQuery"
 
 export interface Certificate {
   id: string
@@ -44,17 +45,7 @@ export interface ApiResponse<T> {
 
 export const certificatesApi = createApi({
   reducerPath: "certificatesApi",
-  baseQuery: fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_BACKEND_URL,
-    prepareHeaders: async (headers, { getState }) => {
-      const token = await (getState() as any).auth.token
-      if (token) {
-        headers.set("authorization", `Bearer ${token}`)
-      }
-      headers.set("content-type", "application/json")
-      return headers
-    },
-  }),
+  baseQuery: baseQueryWithAuthHandling,
   tagTypes: ["Certificate"],
   endpoints: (builder) => ({
     // Get all certificates for the authenticated user
@@ -78,12 +69,12 @@ export const certificatesApi = createApi({
       providesTags: ["Certificate"],
     }),
 
-    getCertificateValidity: builder.mutation<Certificate, string>({
+    getCertificateValidity: builder.mutation<boolean, string>({
       query: (id) => ({
         url: `/certificate/check-validitity/${id}`,
         method: "POST",
       }),
-      transformResponse: (response: ApiResponse<Certificate>) => response.data,
+      transformResponse: (response: ApiResponse<boolean>) => response.data,
       //providesTags: ["Certificate"],
     }),
 

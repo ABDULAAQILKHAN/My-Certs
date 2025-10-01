@@ -4,26 +4,34 @@ import type React from "react"
 
 import { useState } from "react"
 import Link from "next/link"
-import { useForgotPasswordMutation } from "@/lib/api/mockAuthApi"
+import { forgotPassword } from "@/lib/auth"
 import { Award, Loader2, ArrowLeft } from "lucide-react"
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
   const [message, setMessage] = useState("")
   const [error, setError] = useState("")
-
-  const [forgotPassword, { isLoading }] = useForgotPasswordMutation()
-
+  const [isLoading, setIsLoading] = useState(false)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
     setMessage("")
-
+    setIsLoading(true)
     try {
-      const result = await forgotPassword({ email }).unwrap()
-      setMessage(result.message)
+      const {success, error} = await forgotPassword(email)
+      if (error) {
+        setError(error)
+        return
+      }
+      if (!success) {
+        setError("Failed to send reset email")
+        return
+      }
+      setMessage("Password reset email sent! Please check your inbox.")
     } catch (err: any) {
       setError(err.data?.message || "Failed to send reset email")
+    }finally {
+      setIsLoading(false)
     }
   }
 

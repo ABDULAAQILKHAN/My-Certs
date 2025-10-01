@@ -104,3 +104,31 @@ export async function deleteImage(filePath: string) {
     return null;
   }
 }
+
+// Send password reset email
+export async function forgotPassword(email: string): Promise<{ success: boolean; error: string | null }> {
+  try {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/update-password` : undefined,
+    })
+    if (error) {
+      return { success: false, error: error.message }
+    }
+    return { success: true, error: null }
+  } catch (e: any) {
+    return { success: false, error: e?.message || 'Unexpected error' }
+  }
+}
+
+// Update password after user is in a recovery session
+export async function updatePassword(newPassword: string): Promise<{ success: boolean; error: string | null }> {
+  try {
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+    if (error) {
+      return { success: false, error: error.message }
+    }
+    return { success: true, error: null }
+  } catch (e: any) {
+    return { success: false, error: e?.message || 'Unexpected error' }
+  }
+}
