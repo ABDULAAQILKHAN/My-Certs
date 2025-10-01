@@ -93,14 +93,59 @@ export async function deleteImage(filePath: string) {
       alert(`Error: ${error.message}`); // Optional: show error to the user
       return null;
     }
-
-    console.log('Successfully deleted image:', data);
-    alert('Image deleted successfully!'); // Optional: show success message
     return data;
 
   } catch (err) {
     console.error('An unexpected error occurred:', err);
     alert('An unexpected error occurred. Please try again.');
     return null;
+  }
+}
+
+// Send password reset email
+export async function forgotPassword(email: string): Promise<{ success: boolean; error: string | null }> {
+  try {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/update-password` : undefined,
+    })
+    if (error) {
+      return { success: false, error: error.message }
+    }
+    return { success: true, error: null }
+  } catch (e: any) {
+    return { success: false, error: e?.message || 'Unexpected error' }
+  }
+}
+
+export async function updatePassword(newPassword: string): Promise<{ success: boolean; error: string | null }> {
+  try {
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+    if (error) {
+      return { success: false, error: error.message }
+    }
+    return { success: true, error: null }
+  } catch (e: any) {
+    return { success: false, error: e?.message || 'Unexpected error' }
+  }
+}
+
+// Update basic profile metadata (name, phone)
+export async function updateUserProfile(
+  { name, phone, avatar }: { name?: string; phone?: string; avatar?: string }
+): Promise<{ success: boolean; error: string | null }> {
+  try {
+    const payload: any = { data: {} as Record<string, any> }
+    if (name !== undefined) payload.data.name = name
+    if (phone !== undefined) payload.data.phone = phone
+    if (avatar !== undefined) payload.data.avatar = avatar
+
+    const { error } = await supabase.auth.updateUser(payload)
+    if (error) {
+      return { success: false, error: error.message }
+    }
+
+    return { success: true, error: null }
+  } catch (e: any) {
+    return { success: false, error: e?.message || 'Unexpected error' }
   }
 }

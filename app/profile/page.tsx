@@ -8,38 +8,52 @@ import { useUpdateProfileMutation } from "@/lib/api/authApi"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { User, Mail, Phone, Save, Loader2, Camera } from "lucide-react"
 import { useGetUserProfileQuery } from "@/lib/api/authApi"
+import { updateUserProfile, uploadImage } from "@/lib/auth"
 export default function ProfilePage() {
   const { user, token } = useAppSelector((state) => state.auth)
-  const [updateProfile, { isLoading }] = useUpdateProfileMutation()
-const { data: profileData, isLoading: isUserLoading, error: userError} = useGetUserProfileQuery(undefined, {
-    refetchOnMountOrArgChange: true,
-    skip: !token,
-    refetchOnReconnect: true,
-  })
+  const [message, setMessage] = useState("")
+  const [error, setError] = useState("")
+  const [totalCertificates, setTotalCertificates] = useState(0)
+  const [publicCertificates, setPublicCertificates] = useState(0)
+  const [totalViews, setTotalViews] = useState(0)
   const [formData, setFormData] = useState({
     id: user?.id || "",
     name: user?.name || "",
     email: user?.email || "",
     phone: user?.phone || "",
+    avatar: user?.avatar || "",
+  })
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
+
+
+  const [updateProfile, { isLoading }] = useUpdateProfileMutation()
+  const { data: profileData, isLoading: isUserLoading, error: userError} = useGetUserProfileQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+    skip: !token,
+    refetchOnReconnect: true,
   })
   useEffect(() => {
     if (profileData && profileData?.statusCode === 200) {
       console.log("Profile Data:", profileData)
       const data = profileData.data;
       if(!data) return
-      setFormData({
+      setFormData(prev => ({
+        ...prev,
         id: data.id,
         name: data.name || "",
         email: data.email || "",
         phone: data.phone || "",
-      })
+        avatar: (data as any).avatar || prev.avatar || "",
+      }))
+      setTotalCertificates(data.totalCertificates || 0)
+      setPublicCertificates(data.totalPublicCertificates || 0)
+      setTotalViews(data.totalViews || 0)
     }
     if (userError) {
       console.error("Error fetching profile:", userError)
     }
   }, [profileData, token, userError])
-  const [message, setMessage] = useState("")
-  const [error, setError] = useState("")
+
 function formatIndianNumber(input: string): string {
   // Remove all non-digit characters
   let digits = input.replace(/\D/g, '');
@@ -74,13 +88,20 @@ function formatIndianNumber(input: string): string {
     formData.phone = formatIndianNumber(formData.phone);
     try {
       const payload = {
-        name: formData.name,
-        //email: formData.email,
-        phone: formData.phone,
-        //id: formData.id,
+          name: formData.name,
+          phone: formData.phone,
+          avatar: formData.avatar,
+        }
+        const {success, error} = await updateUserProfile(payload)
+      if (error) {
+        setError(error)
+        return
       }
-      const response = await updateProfile(payload).unwrap()
-      console.log("Update response:", response)
+      if (!success) {
+        setError("Failed to update profile")
+        return
+      }
+  const response = await updateProfile(payload).unwrap()
       if (!response) {
         setError("Failed to update profile")
         return
@@ -128,9 +149,9 @@ function formatIndianNumber(input: string): string {
               <div className="flex items-center space-x-6">
                 <div className="relative">
                   <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center">
-                    {user?.avatar ? (
+                    {formData.avatar ? (
                       <img
-                        src={user.avatar || "/placeholder.svg"}
+                        src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/images/${formData.avatar}`}
                         alt="Profile"
                         className="w-24 h-24 rounded-full object-cover"
                       />
@@ -140,10 +161,37 @@ function formatIndianNumber(input: string): string {
                   </div>
                   <button
                     type="button"
-                    className="absolute bottom-0 right-0 p-2 bg-primary text-white rounded-full hover:bg-primary/90 transition-colors"
+                    onClick={() => document.getElementById('avatarInput')?.click() }
+                    className="absolute bottom-0 right-0 p-2 bg-primary text-white rounded-full hover:bg-primary/90 transition-colors disabled:opacity-50"
+                    disabled={isUploadingAvatar}
                   >
-                    <Camera className="w-4 h-4" />
+                    {isUploadingAvatar ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
                   </button>
+                  <input
+                    id="avatarInput"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0]
+                      if (!file) return
+                      setIsUploadingAvatar(true)
+                      setError("")
+                      try {
+                        const path = await uploadImage(file)
+                        setFormData(prev => ({ ...prev, avatar: path }))
+                        // Immediately persist avatar metadata (optional early save)
+                        await updateUserProfile({ avatar: path })
+                        setMessage("Profile picture updated")
+                        setTimeout(() => setMessage(""), 3000)
+                      } catch (err: any) {
+                        console.error('Avatar upload failed', err)
+                        setError(err?.message || 'Failed to upload avatar')
+                      } finally {
+                        setIsUploadingAvatar(false)
+                      }
+                    }}
+                  />
                 </div>
                 <div>
                   <h3 className="text-lg font-medium text-gray-900 dark:text-white">Profile Picture</h3>
@@ -205,15 +253,15 @@ function formatIndianNumber(input: string): string {
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Account Statistics</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                    <p className="text-2xl font-bold text-primary">6</p>
+                    <p className="text-2xl font-bold text-primary">{totalCertificates}</p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">Total Certificates</p>
                   </div>
                   <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                    <p className="text-2xl font-bold text-primary">4</p>
+                    <p className="text-2xl font-bold text-primary">{publicCertificates}</p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">Public Certificates</p>
                   </div>
                   <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                    <p className="text-2xl font-bold text-primary">127</p>
+                    <p className="text-2xl font-bold text-primary">{totalViews}</p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">Total Views</p>
                   </div>
                 </div>
