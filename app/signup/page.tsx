@@ -5,6 +5,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import SiteHeader from "@/components/site-header"
 import { useAppSelector } from "@/lib/hooks"
 import { Eye, EyeOff, Award, Loader2, CircleCheckBig } from "lucide-react"
 import {signUp} from '@/lib/auth'
@@ -126,6 +127,8 @@ const validatePassword = (password: string): string => {
 
 
   return (
+    <>
+    <SiteHeader />
     <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 relative">
       {isSuccessOpen && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -306,5 +309,6 @@ const validatePassword = (password: string): string => {
         </form>
       </div>
     </div>
+    </>
   )
 }
