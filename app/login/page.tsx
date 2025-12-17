@@ -5,6 +5,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import SiteHeader from "@/components/site-header"
 import { useAppDispatch, useAppSelector } from "@/lib/hooks"
 import { setCredentials } from "@/lib/slices/authSlice"
 import { Eye, EyeOff, Award, Loader2 } from "lucide-react"
@@ -68,6 +69,8 @@ export default function LoginPage() {
 
 
   return (
+    <>
+    <SiteHeader />
     <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 relative">
       {/* Abstract Background Pattern */}
       <div className="fixed inset-0 bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
@@ -188,5 +191,6 @@ export default function LoginPage() {
         </form>
       </div>
     </div>
+    </>
   )
 }
