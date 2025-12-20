@@ -34,7 +34,6 @@ export default function ProfilePage() {
   })
   useEffect(() => {
     if (profileData && profileData?.statusCode === 200) {
-      console.log("Profile Data:", profileData)
       const data = profileData.data;
       if(!data) return
       setFormData(prev => ({

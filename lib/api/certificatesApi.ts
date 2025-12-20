@@ -43,6 +43,15 @@ export interface ApiResponse<T> {
   timestamp: string
 }
 
+export interface ApiResponseValidity<T> {
+  success: boolean
+  statusCode: number
+  message: string
+  data: T
+  error?: string
+  timestamp: string
+}
+
 export const certificatesApi = createApi({
   reducerPath: "certificatesApi",
   baseQuery: baseQueryWithAuthHandling,
@@ -69,12 +78,11 @@ export const certificatesApi = createApi({
       providesTags: ["Certificate"],
     }),
 
-    getCertificateValidity: builder.mutation<boolean, string>({
+    getCertificateValidity: builder.mutation<any, string>({
       query: (id) => ({
         url: `/certificate/check-validitity/${id}`,
         method: "POST",
       }),
-      transformResponse: (response: ApiResponse<boolean>) => response.data,
       //providesTags: ["Certificate"],
     }),
 
