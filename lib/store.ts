@@ -3,6 +3,7 @@ import { setupListeners } from "@reduxjs/toolkit/query"
 import { authApi } from "./api/authApi"
 import { certificatesApi } from "./api/certificatesApi"
 import { groupsApi } from "./api/groupsApi"
+import { themeApi } from "./api/themeApi"
 import authReducer from "./slices/authSlice"
 import themeReducer from "./slices/themeSlice"
 
@@ -13,9 +14,10 @@ export const store = configureStore({
     [authApi.reducerPath]: authApi.reducer,
     [certificatesApi.reducerPath]: certificatesApi.reducer,
     [groupsApi.reducerPath]: groupsApi.reducer,
+    [themeApi.reducerPath]: themeApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(authApi.middleware, certificatesApi.middleware, groupsApi.middleware),
+    getDefaultMiddleware().concat(authApi.middleware, certificatesApi.middleware, groupsApi.middleware, themeApi.middleware),
 })
 
 setupListeners(store.dispatch)
