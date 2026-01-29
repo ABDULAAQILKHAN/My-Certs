@@ -2,10 +2,12 @@
 
 import { useState , useEffect} from "react"
 import { useRouter } from "next/navigation"
-import { useGetCertificatesQuery,Certificate } from "@/lib/api/certificatesApi"
+import { useGetCertificatesQuery, Certificate } from "@/lib/api/certificatesApi"
+import { useGetGroupsQuery } from "@/lib/api/groupsApi"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { CertificateCard } from "@/components/certificate-card"
-import { Search, Plus, Loader2 } from "lucide-react"
+import { GroupCard } from "@/components/group-card"
+import { Search, Plus, Loader2, Layers } from "lucide-react"
 import { ShareModal } from "@/components/share-modal"
 export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -20,6 +22,12 @@ export default function DashboardPage() {
   } = useGetCertificatesQuery({
     search: searchQuery,
   })
+
+  const {
+    data: groups,
+    isLoading: isGroupsLoading,
+  } = useGetGroupsQuery({ search: searchQuery })
+
   useEffect(() => {
   console.log("shared cert", sharedCertificate)
 }, [sharedCertificate])
@@ -107,6 +115,56 @@ export default function DashboardPage() {
           )}
         </div>
       )}
+
+      {/* My Groups Section */}
+      <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">My Groups</h2>
+            <p className="mt-2 text-gray-600 dark:text-gray-400">Organize your certificates into collections</p>
+          </div>
+
+          <button
+            onClick={() => router.push("/groups")}
+            className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors backdrop-blur-sm"
+          >
+            <Layers className="h-4 w-4 mr-2" />
+            Manage Groups
+          </button>
+        </div>
+
+        {isGroupsLoading ? (
+          <div className="flex justify-center items-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : groups && groups.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {groups.map((group) => (
+              <GroupCard
+                key={group.id}
+                group={group}
+                onClick={() => router.push(`/groups/${group.id}`)}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-dashed border-gray-300 dark:border-gray-700">
+            <Layers className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">No groups yet</h3>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Create a group to organize your certificates.
+            </p>
+            <button
+               onClick={() => router.push("/groups")}
+               className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-primary bg-primary/10 hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Create Group
+            </button>
+          </div>
+        )}
+      </div>
+
       {/* Share Modal */}
       {sharedCertificate && <ShareModal certificate={sharedCertificate} onClose={() => setSharedCertificate(null)} />}
     </DashboardLayout>

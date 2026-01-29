@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { useAppSelector, useAppDispatch } from "@/lib/hooks"
 import { logout } from "@/lib/slices/authSlice"
 import { toggleTheme } from "@/lib/slices/themeSlice"
-import { Award, Home, Upload, User, LogOut, Sun, Moon, Settings } from "lucide-react"
+import { Award, Home, Upload, User, LogOut, Sun, Moon, Settings, Layers } from "lucide-react"
 import { signOut } from "@/lib/auth"
 import {
   Sidebar,
@@ -28,6 +28,11 @@ const navigationItems = [
     title: "Dashboard",
     url: "/dashboard",
     icon: Home,
+  },
+  {
+    title: "Groups",
+    url: "/groups",
+    icon: Layers,
   },
   {
     title: "Upload Certificate",

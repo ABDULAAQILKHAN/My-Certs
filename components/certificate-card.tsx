@@ -3,15 +3,16 @@
 import type React from "react"
 
 import type { Certificate } from "@/lib/api/certificatesApi"
-import { Calendar, Building, Eye, Share2 } from "lucide-react"
+import { Calendar, Building, Eye, Share2, Trash2 } from "lucide-react"
 
 interface CertificateCardProps {
   certificate: Certificate
   onClick: () => void
   setSharedCertificate?: (certificate: Certificate) => void
+  onRemove?: () => void
 }
 
-export function CertificateCard({ certificate, onClick, setSharedCertificate }: CertificateCardProps) {
+export function CertificateCard({ certificate, onClick, setSharedCertificate, onRemove }: CertificateCardProps) {
   const handleShare = (e: React.MouseEvent) => {
     e.stopPropagation()
     const shareUrl = `${window.location.origin}/public/${certificate.credentialId}`
@@ -22,7 +23,7 @@ export function CertificateCard({ certificate, onClick, setSharedCertificate }: 
   return (
     <div
       onClick={onClick}
-      className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer overflow-hidden group border border-gray-200/50 dark:border-gray-700/50 hover:border-primary/30"
+      className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer overflow-hidden group border border-gray-200/50 dark:border-gray-700/50 hover:border-primary/30 relative"
     >
       <div className="aspect-video bg-gray-100 dark:bg-gray-700 relative overflow-hidden">
         <img
@@ -47,6 +48,17 @@ export function CertificateCard({ certificate, onClick, setSharedCertificate }: 
                 className="p-2 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               >
                 <Share2 className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+              </button>
+            )}
+            {onRemove && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onRemove()
+                }}
+                className="p-2 bg-red-600 text-white rounded-full shadow-lg hover:bg-red-700 transition-colors"
+              >
+                <Trash2 className="h-4 w-4" />
               </button>
             )}
           </div>
