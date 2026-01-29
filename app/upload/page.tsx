@@ -26,6 +26,7 @@ export default function UploadPage() {
   const [isCredentialValid, setIsCredentialValid] = useState<boolean>(true)
   const [error, setError] = useState("")
   const [credentialId, setCredentialId] = useState("")
+  const [isUploading, setIsUploading] = useState(false)
   const router = useRouter()
   const [createCertificate, { isLoading }] = useCreateCertificateMutation()
   const [certificateValidity] = useGetCertificateValidityMutation()
@@ -78,49 +79,59 @@ export default function UploadPage() {
       setError("Please enter the issue date")
       return
     }
+
+    setIsUploading(true)
+
     try {
-      const isValid = await certificateValidity(formData.credentialId)
-      if (isValid) {
-        setIsCredentialValid(true)
-      } else {
-        setIsCredentialValid(false)
-        setError("Invalid Credential ID. Please check and try again.")
-        return
-      }
-    
-
-    if (file) {
-      try {
-        const imagePath = await uploadImage(file)
-        const imageUrl = `${process.env.NEXT_PUBLIC_S3_BUCKET_URL}/${imagePath}`
-
-        if (!imagePath) {
-          setError("Failed to upload image. Please try again.")
+      if (formData.credentialId) {
+        const isValid = await certificateValidity(formData.credentialId).unwrap()
+        if (isValid) {
+          setIsCredentialValid(true)
+        } else {
+          setIsCredentialValid(false)
+          setError("Invalid Credential ID. Please check and try again.")
+          setIsUploading(false)
           return
         }
-       const payload = {
-         ...formData,
-         //skills,
-         image: imageUrl,
-         imagePath,
-       }
- 
-       const response = await createCertificate(payload).unwrap()
-       if (response.statusCode !== 201) {
-         setError(response.message || "Failed to upload certificate")
-         return
-       }
-       router.push("/dashboard")
-
-      } catch (uploadError) {
-        setError("Failed to upload image. Please try again.")
-        return
       }
-    } else{
-      setError("Please select a certificate image to upload")
-    }
+
+      if (file) {
+        try {
+          const imagePath = await uploadImage(file)
+          const imageUrl = `${process.env.NEXT_PUBLIC_S3_BUCKET_URL}/${imagePath}`
+
+          if (!imagePath) {
+            setError("Failed to upload image. Please try again.")
+            setIsUploading(false)
+            return
+          }
+          const payload = {
+            ...formData,
+            //skills,
+            image: imageUrl,
+            imagePath,
+          }
+
+          const response = await createCertificate(payload).unwrap()
+          if (response.statusCode !== 201) {
+            setError(response.message || "Failed to upload certificate")
+            setIsUploading(false)
+            return
+          }
+          router.push("/dashboard")
+
+        } catch (uploadError) {
+          setError("Failed to upload image. Please try again.")
+          setIsUploading(false)
+          return
+        }
+      } else {
+        setError("Please select a certificate image to upload")
+        setIsUploading(false)
+      }
     } catch (err: any) {
       setError(err.data?.message || "Failed to upload certificate")
+      setIsUploading(false)
     }
   }
   useEffect(() => {
@@ -374,10 +385,10 @@ export default function UploadPage() {
               </button>
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isUploading}
                 className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                {isLoading ? (
+                {isUploading ? (
                   <div className="flex items-center">
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
                     Uploading...

@@ -5,12 +5,25 @@ import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { useAppSelector, useAppDispatch } from "@/lib/hooks"
-import { toggleTheme } from "@/lib/slices/themeSlice"
+import { toggleTheme, setTheme } from "@/lib/slices/themeSlice"
+import { useUpdateThemeMutation } from "@/lib/api/themeApi"
 
 export function SiteHeader() {
   const { isAuthenticated } = useAppSelector((state) => state.auth)
   const isDark = useAppSelector((state) => state.theme.isDark)
   const dispatch = useAppDispatch()
+  const [updateThemeApi] = useUpdateThemeMutation()
+
+  const handleThemeToggle = async () => {
+    dispatch(toggleTheme())
+    if (isAuthenticated) {
+      try {
+        await updateThemeApi().unwrap()
+      } catch (error) {
+        console.error("Failed to update theme preference:", error)
+      }
+    }
+  }
 
   return (
     <header className="sticky top-0 z-50 border-b bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -27,7 +40,7 @@ export function SiteHeader() {
             variant="ghost"
             size="icon"
             aria-label="Toggle theme"
-            onClick={() => dispatch(toggleTheme())}
+            onClick={handleThemeToggle}
           >
             {isDark ? <SunIcon className="h-4 w-4" /> : <MoonIcon className="h-4 w-4" />}
           </Button>
