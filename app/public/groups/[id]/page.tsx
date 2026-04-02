@@ -49,7 +49,7 @@ export default function PublicGroupPage() {
         <div className="flex justify-center mb-8">
           <div className="flex items-center text-primary">
             <Award className="h-8 w-8 mr-2" />
-            <span className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">My Certs</span>
+            <span className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">CertShare</span>
           </div>
         </div>
 

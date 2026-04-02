@@ -1,8 +1,8 @@
-# 🎓 My Certs
+# 🎓 CertShare
 
-**My Certs** is a modern certificate management web application built with **React**, **Next.js**, **Redux Toolkit**, and **RTK Query**. It helps users securely upload, manage, and share their certifications — all wrapped in a sleek, responsive UI with dark/light theme support.
+**CertShare** is a modern certificate management web application built with **React**, **Next.js**, **Redux Toolkit**, and **RTK Query**. It helps users securely upload, manage, and share their certifications — all wrapped in a sleek, responsive UI with dark/light theme support.
 
-![My Certs Banner](https://your-image-url-here.com/banner.png) <!-- optional banner -->
+![CertShare Banner](https://your-image-url-here.com/banner.png) <!-- optional banner -->
 
 ---
 

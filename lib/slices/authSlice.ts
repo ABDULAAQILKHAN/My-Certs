@@ -34,8 +34,8 @@ const authSlice = createSlice({
 
       // Persist to localStorage (only on client side)
       if (typeof window !== 'undefined') {
-        localStorage.setItem("mycerts_token", action.payload.token)
-        localStorage.setItem("mycerts_current_user", JSON.stringify(action.payload.user))
+        localStorage.setItem("certshare_token", action.payload.token)
+        localStorage.setItem("certshare_current_user", JSON.stringify(action.payload.user))
       }
     },
     logout: (state) => {
@@ -45,15 +45,15 @@ const authSlice = createSlice({
       state.isInitialized = true
       // Clear localStorage (only on client side)
       if (typeof window !== 'undefined') {
-        localStorage.removeItem("mycerts_token")
-        localStorage.removeItem("mycerts_current_user")
+        localStorage.removeItem("certshare_token")
+        localStorage.removeItem("certshare_current_user")
       }
     },
     initializeAuth: (state) => {
       // Check for existing session only on client side
       if (typeof window !== 'undefined') {
-        const token = localStorage.getItem("mycerts_token")
-        const userStr = localStorage.getItem("mycerts_current_user")
+        const token = localStorage.getItem("certshare_token")
+        const userStr = localStorage.getItem("certshare_current_user")
 
         if (token && userStr) {
           try {
@@ -63,8 +63,8 @@ const authSlice = createSlice({
             state.isAuthenticated = true
           } catch (error) {
             // Clear invalid data
-            localStorage.removeItem("mycerts_token")
-            localStorage.removeItem("mycerts_current_user")
+            localStorage.removeItem("certshare_token")
+            localStorage.removeItem("certshare_current_user")
           }
         }
       }

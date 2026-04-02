@@ -33,7 +33,7 @@ export default function HomePage() {
             Organize, Share and Showcase your Certificates
           </h1>
           <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
-            My Certs helps you securely store, categorize and share your achievements with elegant, privacy‑aware links and previews.
+            CertShare helps you securely store, categorize and share your achievements with elegant, privacy‑aware links and previews.
           </p>
           <div className="mt-6 flex flex-wrap items-center gap-3">
             {isAuthenticated ? (
@@ -146,9 +146,12 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="border-t">
         <div className="container mx-auto flex flex-col items-center justify-between gap-4 px-6 py-6 sm:flex-row">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Image src="/quality.png" alt="My Certs" width={18} height={18} />
-            <span>© {new Date().getFullYear()} My Certs</span>
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Image src="/quality.png" alt="CertShare" width={18} height={18} />
+              <span>© {new Date().getFullYear()} CertShare</span>
+            </div>
+            <span className="text-xs text-muted-foreground">Powered by Solutions with Aaqil</span>
           </div>
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <Link href="/login" className="hover:text-foreground">Login</Link>

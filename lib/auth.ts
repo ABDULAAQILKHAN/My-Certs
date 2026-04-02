@@ -16,7 +16,7 @@ export async function signUp(
                 data: {
                     name,
                     phone,
-                    project: "MyCerts"
+                    project: "CertShare"
                 },
                 emailRedirectTo: `${window.location.origin}/login`,
             },

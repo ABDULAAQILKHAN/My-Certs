@@ -29,8 +29,8 @@ export function SiteHeader() {
     <header className="sticky top-0 z-50 border-b bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex items-center justify-between px-6 py-4">
         <Link href="/" className="flex items-center gap-3">
-          <Image src="/quality.png" alt="My Certs" width={28} height={28} />
-          <span className="text-lg font-semibold">My Certs</span>
+          <Image src="/quality.png" alt="CertShare" width={28} height={28} />
+          <span className="text-lg font-semibold">CertShare</span>
         </Link>
 
         {/* Optional nav kept intentionally omitted as per user preference */}
