@@ -166,9 +166,9 @@ export default function LoginPage() {
             </div>
 
             <div className="flex items-center justify-between mt-6">
-              <Link href="/forgot-password" className="text-sm text-primary hover:text-primary/80 transition-colors">
+              <a href="https://solutions-with-aaqil.vercel.app/forgot-password" className="text-sm text-primary hover:text-primary/80 transition-colors">
                 Forgot your password?
-              </Link>
+              </a>
             </div>
 
             <button
@@ -182,9 +182,9 @@ export default function LoginPage() {
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Don't have an account?{" "}
-                <Link href="/signup" className="text-primary hover:text-primary/80 font-medium transition-colors">
+                <a href="https://solutions-with-aaqil.vercel.app/signup" className="text-primary hover:text-primary/80 font-medium transition-colors">
                   Sign up
-                </Link>
+                </a>
               </p>
             </div>
           </div>
