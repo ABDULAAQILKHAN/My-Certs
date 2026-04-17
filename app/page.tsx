@@ -83,7 +83,7 @@ export default function HomePage() {
             ) : (
               <>
                 <Button asChild size="lg" className="animate-pulse-glow">
-                  <a href="https://solutions-with-aaqil.vercel.app/signup">Create your account</a>
+                  <a href="https://solutions-with-aaqil.vercel.app/signup?from=mycerts">Create your account</a>
                 </Button>
                 <Button asChild size="lg" variant="outline">
                   <Link href="/login">Sign in</Link>
@@ -299,7 +299,7 @@ export default function HomePage() {
               ) : (
                 <>
                   <Button asChild size="lg" className="animate-pulse-glow">
-                    <a href="https://solutions-with-aaqil.vercel.app/signup">Get started free</a>
+                    <a href="https://solutions-with-aaqil.vercel.app/signup?from=mycerts">Get started free</a>
                   </Button>
                   <Button asChild size="lg" variant="outline">
                     <Link href="/login">Sign in</Link>
@@ -333,7 +333,7 @@ export default function HomePage() {
                 <li><a href="#features" className="hover:text-foreground transition-colors">Features</a></li>
                 <li><a href="#how-it-works" className="hover:text-foreground transition-colors">How it works</a></li>
                 <li><Link href="/login" className="hover:text-foreground transition-colors">Login</Link></li>
-                <li><a href="https://solutions-with-aaqil.vercel.app/signup" className="hover:text-foreground transition-colors">Signup</a></li>
+                <li><a href="https://solutions-with-aaqil.vercel.app/signup?from=mycerts" className="hover:text-foreground transition-colors">Signup</a></li>
               </ul>
             </div>
 

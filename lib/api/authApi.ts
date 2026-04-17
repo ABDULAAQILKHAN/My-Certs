@@ -63,7 +63,7 @@ export const authApi = createApi({
     // }),
     forgotPassword: builder.mutation<{ message: string }, { email: string }>({
       query: (data) => ({
-        url: "/forgot-password",
+        url: "/forgot-password?from=mycerts",
         method: "POST",
         body: data,
       }),
@@ -94,4 +94,4 @@ export const authApi = createApi({
   }),
 })
 
-export const { useLoginMutation, useGetUserProfileQuery, useForgotPasswordMutation, useUpdateProfileMutation, useUpdateThemeMutation, useGetUserThemeQuery} = authApi
+export const { useLoginMutation, useGetUserProfileQuery, useForgotPasswordMutation, useUpdateProfileMutation, useUpdateThemeMutation, useGetUserThemeQuery } = authApi

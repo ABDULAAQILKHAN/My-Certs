@@ -54,7 +54,7 @@ export function SiteHeader() {
                 <Link href="/login">Sign in</Link>
               </Button>
               <Button asChild>
-                <a href="https://solutions-with-aaqil.vercel.app/signup">Get started</a>
+                <a href="https://solutions-with-aaqil.vercel.app/signup?from=mycerts">Get started</a>
               </Button>
             </>
           )}
