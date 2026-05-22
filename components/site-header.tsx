@@ -7,12 +7,14 @@ import { Button } from "@/components/ui/button"
 import { useAppSelector, useAppDispatch } from "@/lib/hooks"
 import { toggleTheme, setTheme } from "@/lib/slices/themeSlice"
 import { useUpdateThemeMutation } from "@/lib/api/themeApi"
+import { useRouter } from "next/navigation"
 
 export function SiteHeader() {
   const { isAuthenticated } = useAppSelector((state) => state.auth)
   const isDark = useAppSelector((state) => state.theme.isDark)
   const dispatch = useAppDispatch()
   const [updateThemeApi] = useUpdateThemeMutation()
+  const router = useRouter()
 
   const handleThemeToggle = async () => {
     dispatch(toggleTheme())
@@ -54,7 +56,7 @@ export function SiteHeader() {
                 <Link href="/login">Sign in</Link>
               </Button>
               <Button asChild>
-                <a href="https://solutions-with-aaqil.vercel.app/signup?from=mycerts">Get started</a>
+                <Link href="/signup">Get started</Link>
               </Button>
             </>
           )}

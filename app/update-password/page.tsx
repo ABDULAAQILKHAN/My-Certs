@@ -15,15 +15,28 @@ export default function UpdatePasswordPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [hasRecoverySession, setHasRecoverySession] = useState(false)
 
-  // Supabase sets a recovery session when user clicks the email link (type=recovery)
-  useEffect(() => {
-    const hash = window.location.hash
-    // Example hash contains access_token when in recovery: #access_token=...&type=recovery
-    if (hash.includes("type=recovery") && hash.includes("access_token")) {
-      setHasRecoverySession(true)
+  // // Supabase sets a recovery session when user clicks the email link (type=recovery)
+  // useEffect(() => {
+  //   const hash = window.location.hash
+  //   // Example hash contains access_token when in recovery: #access_token=...&type=recovery
+  //   if (hash.includes("type=recovery") && hash.includes("access_token")) {
+  //     setHasRecoverySession(true)
+  //   }
+  // }, [])
+useEffect(() => {
+    async function checkSession() {
+      // Ask Supabase directly if a session exists in storage
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (session) {
+        setHasRecoverySession(true)
+      } else {
+        setError("No active recovery session found. Please use the link from your email.")
+      }
     }
+    
+    checkSession()
   }, [])
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")

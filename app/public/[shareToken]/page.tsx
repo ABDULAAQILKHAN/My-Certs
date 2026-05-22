@@ -161,7 +161,7 @@ export default function PublicCertificatePage() {
         {/* Footer */}
         <div className="text-center mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Powered by <a href="https://solutions-with-aaqil.vercel.app/" target="_" className="font-semibold text-primary underline hover:opacity-30">Solutions with AAQIL</a>
+            Powered by <a href={process.env.NEXT_PUBLIC_AUTH_REDIRECT_URL} target="_" className="font-semibold text-primary underline hover:opacity-30">Solutions with AAQIL</a>
           </p>
         </div>
       </div>

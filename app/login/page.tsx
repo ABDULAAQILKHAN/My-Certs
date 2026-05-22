@@ -48,12 +48,7 @@ export default function LoginPage() {
       const token = data.session.access_token;
 
       dispatch(setCredentials({ user, token }))
-
-      const res = await login(null).unwrap()
-      // console.log("Login response:", res)
-      if (res.statusCode === 409 || res.statusCode === 201) {
-        router.push("/")
-      }
+      router.push("/dashboard")
     } catch (err: any) {
       setError(err.data?.message || "Login failed")
     } finally {
@@ -166,7 +161,7 @@ export default function LoginPage() {
               </div>
 
               <div className="flex items-center justify-between mt-6">
-                <a href="https://solutions-with-aaqil.vercel.app/forgot-password?from=mycerts" className="text-sm text-primary hover:text-primary/80 transition-colors">
+                <a href="/forgot-password" className="text-sm text-primary hover:text-primary/80 transition-colors">
                   Forgot your password?
                 </a>
               </div>
@@ -182,7 +177,7 @@ export default function LoginPage() {
               <div className="mt-6 text-center">
                 <p className="text-sm text-gray-600 dark:text-gray-400">
                   Don't have an account?{" "}
-                  <a href="https://solutions-with-aaqil.vercel.app/signup?from=mycerts" className="text-primary hover:text-primary/80 font-medium transition-colors">
+                  <a href={`${process.env.NEXT_PUBLIC_AUTH_REDIRECT_URL}/signup?from=mycerts`} className="text-primary hover:text-primary/80 font-medium transition-colors">
                     Sign up
                   </a>
                 </p>

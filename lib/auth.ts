@@ -18,7 +18,7 @@ export async function signUp(
                     phone,
                     project: "MyCerts"
                 },
-                emailRedirectTo: `${window.location.origin}/login`,
+                emailRedirectTo: `${process.env.NEXT_PUBLIC_AUTH_REDIRECT_URL}/login`,
             },
         });
       return { user: data.user, error: error ? error.message : null };
@@ -106,7 +106,7 @@ export async function deleteImage(filePath: string) {
 export async function forgotPassword(email: string): Promise<{ success: boolean; error: string | null }> {
   try {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/update-password` : undefined,
+      redirectTo: `${process.env.NEXT_PUBLIC_AUTH_REDIRECT_URL}/update-password`,
     })
     if (error) {
       return { success: false, error: error.message }
