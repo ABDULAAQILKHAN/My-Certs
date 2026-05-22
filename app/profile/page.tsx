@@ -8,7 +8,7 @@ import { useUpdateProfileMutation } from "@/lib/api/authApi"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { User, Mail, Phone, Save, Loader2, Camera } from "lucide-react"
 import { useGetUserProfileQuery } from "@/lib/api/authApi"
-import { updateUserProfile, uploadImage } from "@/lib/auth"
+import { updateUserProfile, uploadAvatar } from "@/lib/auth"
 export default function ProfilePage() {
   const { user, token } = useAppSelector((state) => state.auth)
   const [message, setMessage] = useState("")
@@ -151,7 +151,7 @@ function formatIndianNumber(input: string): string {
                   <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center">
                     {formData.avatar ? (
                       <img
-                        src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/images/${formData.avatar}`}
+                        src={formData.avatar.startsWith('http') ? formData.avatar : `${process.env.NEXT_PUBLIC_S3_BUCKET_URL}/${formData.avatar}`}
                         alt="Profile"
                         className="w-24 h-24 rounded-full object-cover"
                       />
@@ -178,7 +178,7 @@ function formatIndianNumber(input: string): string {
                       setIsUploadingAvatar(true)
                       setError("")
                       try {
-                        const path = await uploadImage(file)
+                        const path = await uploadAvatar(file)
                         setFormData(prev => ({ ...prev, avatar: path }))
                         // Immediately persist avatar metadata (optional early save)
                         await updateUserProfile({ avatar: path })

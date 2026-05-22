@@ -97,10 +97,9 @@ export default function UploadPage() {
 
       if (file) {
         try {
-          const imagePath = await uploadImage(file)
-          const imageUrl = `${process.env.NEXT_PUBLIC_S3_BUCKET_URL}/${imagePath}`
+          const imageUrl = await uploadImage(file)
 
-          if (!imagePath) {
+          if (!imageUrl) {
             setError("Failed to upload image. Please try again.")
             setIsUploading(false)
             return
@@ -109,7 +108,7 @@ export default function UploadPage() {
             ...formData,
             //skills,
             image: imageUrl,
-            imagePath,
+            imagePath: imageUrl,
           }
 
           const response = await createCertificate(payload).unwrap()

@@ -30,17 +30,17 @@ export const baseQueryWithAuthHandling: BaseQueryFn<
   let result = await baseQuery(args, api, extraOptions);
 
   if (result.error && 'status' in result.error && result.error.status === 401) {
-    console.error('Unauthorized request. Logging out.');
-    if (typeof window !== 'undefined') {
-      try {
-        api.dispatch(logout()); 
-        localStorage.clear();
-      } catch (e) {
-        console.warn('Failed clearing storage on 401', e);
-      } finally {
-        window.location.href = '/login';
-      }
-    }
+    console.error('Unauthorized request. API returned 401. NOT logging out automatically to prevent loops.');
+    // if (typeof window !== 'undefined') {
+    //   try {
+    //     api.dispatch(logout()); 
+    //     localStorage.clear();
+    //   } catch (e) {
+    //     console.warn('Failed clearing storage on 401', e);
+    //   } finally {
+    //     window.location.href = '/login';
+    //   }
+    // }
   }
 
   return result;

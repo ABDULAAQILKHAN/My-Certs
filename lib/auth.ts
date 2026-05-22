@@ -1,151 +1,233 @@
-import { supabase } from './supabaseClient';
-import type { AuthResponse, User } from '@supabase/supabase-js';
+const AUTH_PRO_URL = process.env.NEXT_PUBLIC_AUTH_PRO_URL || 'https://p01--auth-pro--f2ksfrkf9d45.code.run';
+
+const getToken = () => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('mycerts_token');
+  }
+  return null;
+};
 
 export async function signUp(
   email: string,
   password: string,
   name: string,
   phone?: string
-): Promise<{ user: User | null; error: string | null }> {
-    try {
-        const { data, error } = await supabase.auth.signUp({
-            email,
-            password,
-            phone,
-            options: {
-                data: {
-                    name,
-                    phone,
-                    project: "MyCerts"
-                },
-                emailRedirectTo: `${process.env.NEXT_PUBLIC_AUTH_REDIRECT_URL}/login`,
-            },
-        });
-      return { user: data.user, error: error ? error.message : null };
-		} catch (error) {
-			console.error('Error signing up:', error);
-			throw error;
-		}
+): Promise<{ user: any | null; error: string | null }> {
+  try {
+    const nameParts = name.trim().split(' ');
+    const firstName = nameParts[0];
+    const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+
+    const res = await fetch(`${AUTH_PRO_URL}/auth/signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email,
+        password,
+        firstName,
+        lastName,
+        redirectUrl: `${process.env.NEXT_PUBLIC_AUTH_REDIRECT_URL}/login`
+      })
+    });
+
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); } catch(e) { data = { message: text }; }
+
+    if (!res.ok) {
+      return { user: null, error: data.message || 'Signup failed' };
+    }
+    return { user: data, error: null };
+  } catch (error: any) {
+    console.error('Error signing up:', error);
+    return { user: null, error: error.message };
+  }
 }
 
 export async function signIn(
   email: string,
   password: string
 ): Promise<{ data: any | null; error: string | null }> {
-  const { data, error }: AuthResponse = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
+  try {
+    const res = await fetch(`${AUTH_PRO_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); } catch(e) { data = { message: text }; }
 
-  if (error) {
+    if (!res.ok) {
+      return { data: null, error: data.message || 'Login failed' };
+    }
+
+    const token = data.accessToken || data.access_token || data.token; 
+
+    // Fetch user profile
+    const profileRes = await fetch(`${AUTH_PRO_URL}/users/me`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const profileData = await profileRes.json();
+    
+    if (!profileRes.ok) {
+      return { data: null, error: profileData.message || 'Failed to fetch user profile' };
+    }
+
+    // Safely extract avatar
+    let avatar = '';
+    if (typeof profileData.avatarUrl === 'string') avatar = profileData.avatarUrl;
+    else if (profileData.metadata?.avatar) avatar = profileData.metadata.avatar;
+
+    const formattedUser = {
+      ...profileData,
+      name: profileData.metadata?.name || `${profileData.firstName || ''} ${profileData.lastName || ''}`.trim() || 'User',
+      phone: profileData.metadata?.phone || '',
+      avatar: avatar
+    };
+
+    // Format response to match existing expectations in app/login/page.tsx
+    return { 
+      data: {
+        session: { access_token: token },
+        user: { user_metadata: formattedUser }
+      }, 
+      error: null 
+    };
+  } catch (error: any) {
     return { data: null, error: error.message };
   }
-
-  return {  data, error: null };
 }
+
 export async function signOut(): Promise<{ error: string | null }> {
-  const { error } = await supabase.auth.signOut();
-
-  if (error) {
-    return { error: error.message };
-  }
-
   return { error: null };
 }
+
 export async function signInWithOAuth(
-  provider: 'google' | 'github' | 'facebook' // Add other providers as needed
+  provider: 'google' | 'github' | 'facebook'
 ): Promise<{ error: string | null }> {
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider,
-  });
-
-  if (error) {
-    return { error: error.message };
-  }
-
-  return { error: null };
+  return { error: 'OAuth is not currently supported by Auth-Pro.' };
 }
 
 export async function uploadImage(file: File) {
-  const fileName = `${Date.now()}-${file.name}`;
+  const token = getToken();
+  if (!token) throw new Error('Not authenticated');
 
-  const { data, error } = await supabase.storage
-    .from("images") 
-    .upload(fileName, file, {
-      cacheControl: "3600",
-      upsert: false,
-    });
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('tag', 'certificate');
 
-  if (error) throw error;
+  const res = await fetch(`${AUTH_PRO_URL}/media/images`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${token}` },
+    body: formData
+  });
 
-  return data.path;
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || 'Failed to upload image');
+
+  return data.url; 
+}
+
+export async function uploadAvatar(file: File) {
+  const token = getToken();
+  if (!token) throw new Error('Not authenticated');
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const res = await fetch(`${AUTH_PRO_URL}/users/avatar`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${token}` },
+    body: formData
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || 'Failed to upload avatar');
+
+  return data.avatarUrl || data.url || data.profile?.avatarUrl;
 }
 
 export async function deleteImage(filePath: string) {
- try {
-    const { data, error } = await supabase
-      .storage
-      .from('images') // Your bucket name
-      .remove([filePath]); // The path to the file in an array
+  const token = getToken();
+  if (!token) throw new Error('Not authenticated');
+  
+  const id = filePath.split('/').pop(); 
+  const res = await fetch(`${AUTH_PRO_URL}/media/${id}`, {
+    method: 'DELETE',
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
 
-    if (error) {
-      console.error('Error deleting image:', error.message);
-      alert(`Error: ${error.message}`); // Optional: show error to the user
-      return null;
-    }
-    return data;
-
-  } catch (err) {
-    console.error('An unexpected error occurred:', err);
-    alert('An unexpected error occurred. Please try again.');
+  if (!res.ok) {
     return null;
   }
+  return true;
 }
 
-// Send password reset email
 export async function forgotPassword(email: string): Promise<{ success: boolean; error: string | null }> {
   try {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${process.env.NEXT_PUBLIC_AUTH_REDIRECT_URL}/update-password`,
-    })
-    if (error) {
-      return { success: false, error: error.message }
+    const res = await fetch(`${AUTH_PRO_URL}/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        email,
+        redirectUrl: `${process.env.NEXT_PUBLIC_AUTH_REDIRECT_URL}/update-password` 
+      })
+    });
+    
+    if (!res.ok) {
+      const data = await res.json();
+      return { success: false, error: data.message || 'Reset password failed' };
     }
-    return { success: true, error: null }
+    return { success: true, error: null };
   } catch (e: any) {
-    return { success: false, error: e?.message || 'Unexpected error' }
+    return { success: false, error: e?.message || 'Unexpected error' };
   }
 }
 
-export async function updatePassword(newPassword: string): Promise<{ success: boolean; error: string | null }> {
+export async function updatePassword(token: string, newPassword: string): Promise<{ success: boolean; error: string | null }> {
   try {
-    const { error } = await supabase.auth.updateUser({ password: newPassword })
-    if (error) {
-      return { success: false, error: error.message }
+    const res = await fetch(`${AUTH_PRO_URL}/auth/update-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, newPassword })
+    });
+
+    if (!res.ok) {
+      const data = await res.json();
+      return { success: false, error: data.message || 'Update password failed' };
     }
-    return { success: true, error: null }
+    return { success: true, error: null };
   } catch (e: any) {
-    return { success: false, error: e?.message || 'Unexpected error' }
+    return { success: false, error: e?.message || 'Unexpected error' };
   }
 }
 
-// Update basic profile metadata (name, phone)
 export async function updateUserProfile(
-  { name, phone, avatar }: { name?: string; phone?: string; avatar?: string }
+  payloadObj: { name?: string; phone?: string; avatar?: string }
 ): Promise<{ success: boolean; error: string | null }> {
   try {
-    const payload: any = { data: {} as Record<string, any> }
-    if (name !== undefined) payload.data.name = name
-    if (phone !== undefined) payload.data.phone = phone
-    if (avatar !== undefined) payload.data.avatar = avatar
+    const token = getToken();
+    if (!token) throw new Error('Not authenticated');
 
-    const { error } = await supabase.auth.updateUser(payload)
-    if (error) {
-      return { success: false, error: error.message }
+    const metadata = { ...payloadObj };
+
+    const res = await fetch(`${AUTH_PRO_URL}/users/me`, {
+      method: 'PATCH',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ metadata })
+    });
+
+    if (!res.ok) {
+      const data = await res.json();
+      return { success: false, error: data.message || 'Profile update failed' };
     }
-
-    return { success: true, error: null }
+    return { success: true, error: null };
   } catch (e: any) {
-    return { success: false, error: e?.message || 'Unexpected error' }
+    return { success: false, error: e?.message || 'Unexpected error' };
   }
 }

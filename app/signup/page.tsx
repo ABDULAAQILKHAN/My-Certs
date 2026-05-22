@@ -100,8 +100,8 @@ export default function SignupPage() {
   return (
     <>
       <SiteHeader />
-      <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 relative py-12">
-        
+      <div className="h-full flex items-center justify-center px-4 sm:px-6 lg:px-8 relative py-12">
+
         {/* Success Modal Overlay */}
         {isSuccessOpen && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all animate-fadeIn">
@@ -283,13 +283,12 @@ export default function SignupPage() {
                       required
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className={`block w-full pl-10 pr-10 py-2.5 border rounded-xl bg-white/50 dark:bg-gray-900/50 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm ${
-                        confirmPassword 
-                          ? password === confirmPassword 
-                            ? "border-green-300 dark:border-green-800 focus:ring-green-500/20 focus:border-green-500" 
-                            : "border-red-300 dark:border-red-800 focus:ring-red-500/20 focus:border-red-500"
-                          : "border-gray-200 dark:border-gray-700"
-                      }`}
+                      className={`block w-full pl-10 pr-10 py-2.5 border rounded-xl bg-white/50 dark:bg-gray-900/50 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm ${confirmPassword
+                        ? password === confirmPassword
+                          ? "border-green-300 dark:border-green-800 focus:ring-green-500/20 focus:border-green-500"
+                          : "border-red-300 dark:border-red-800 focus:ring-red-500/20 focus:border-red-500"
+                        : "border-gray-200 dark:border-gray-700"
+                        }`}
                       placeholder="••••••••"
                     />
                     <button

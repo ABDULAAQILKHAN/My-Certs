@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { updatePassword } from "@/lib/auth"
 import { Award, Loader2, CheckCircle2, ArrowLeft, Lock } from "lucide-react"
@@ -23,27 +23,24 @@ export default function UpdatePasswordPage() {
   //     setHasRecoverySession(true)
   //   }
   // }, [])
-useEffect(() => {
-    async function checkSession() {
-      // Ask Supabase directly if a session exists in storage
-      const { data: { session } } = await supabase.auth.getSession()
-      
-      if (session) {
-        setHasRecoverySession(true)
-      } else {
-        setError("No active recovery session found. Please use the link from your email.")
-      }
+  const searchParams = useSearchParams()
+  const token = searchParams.get("token")
+
+  useEffect(() => {
+    if (token) {
+      setHasRecoverySession(true)
+    } else {
+      setError("No active recovery token found in the URL. Please use the exact link from your email.")
     }
-    
-    checkSession()
-  }, [])
+  }, [token])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
     setMessage("")
 
-    if (!hasRecoverySession) {
-      setError("No active recovery session found. Use the link from your email.")
+    if (!token) {
+      setError("No active recovery token found. Use the link from your email.")
       return
     }
 
@@ -59,7 +56,7 @@ useEffect(() => {
 
     setIsLoading(true)
     try {
-      const { success, error } = await updatePassword(password)
+      const { success, error } = await updatePassword(token, password)
       if (error) {
         setError(error)
         return
