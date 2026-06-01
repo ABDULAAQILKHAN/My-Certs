@@ -1,3 +1,5 @@
+import { metadata } from "@/app/layout";
+
 const AUTH_PRO_URL = process.env.NEXT_PUBLIC_AUTH_PRO_URL || 'https://p01--auth-pro--f2ksfrkf9d45.code.run';
 
 const getToken = () => {
@@ -24,15 +26,17 @@ export async function signUp(
       body: JSON.stringify({
         email,
         password,
-        firstName,
-        lastName,
+        metadata: {
+          name: `${firstName} ${lastName}`,
+          phone: phone || '',
+        },
         redirectUrl: `${process.env.NEXT_PUBLIC_AUTH_REDIRECT_URL}/login`
       })
     });
 
     const text = await res.text();
     let data;
-    try { data = JSON.parse(text); } catch(e) { data = { message: text }; }
+    try { data = JSON.parse(text); } catch (e) { data = { message: text }; }
 
     if (!res.ok) {
       return { user: null, error: data.message || 'Signup failed' };
@@ -54,23 +58,38 @@ export async function signIn(
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     });
-    
+
     const text = await res.text();
     let data;
-    try { data = JSON.parse(text); } catch(e) { data = { message: text }; }
+    try { data = JSON.parse(text); } catch (e) { data = { message: text }; }
 
     if (!res.ok) {
       return { data: null, error: data.message || 'Login failed' };
     }
 
-    const token = data.accessToken || data.access_token || data.token; 
+    const token = data.accessToken || data.access_token || data.token;
+
+    // Sync user with backend
+    try {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000/';
+      const syncUrl = backendUrl.endsWith('/') ? `${backendUrl}sync` : `${backendUrl}/sync`;
+      await fetch(syncUrl, {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+    } catch (e) {
+      console.error('Failed to sync user with backend:', e);
+    }
 
     // Fetch user profile
     const profileRes = await fetch(`${AUTH_PRO_URL}/users/me`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     const profileData = await profileRes.json();
-    
+
     if (!profileRes.ok) {
       return { data: null, error: profileData.message || 'Failed to fetch user profile' };
     }
@@ -88,12 +107,12 @@ export async function signIn(
     };
 
     // Format response to match existing expectations in app/login/page.tsx
-    return { 
+    return {
       data: {
         session: { access_token: token },
         user: { user_metadata: formattedUser }
-      }, 
-      error: null 
+      },
+      error: null
     };
   } catch (error: any) {
     return { data: null, error: error.message };
@@ -127,7 +146,7 @@ export async function uploadImage(file: File) {
   const data = await res.json();
   if (!res.ok) throw new Error(data.message || 'Failed to upload image');
 
-  return data.url; 
+  return data.url;
 }
 
 export async function uploadAvatar(file: File) {
@@ -152,8 +171,8 @@ export async function uploadAvatar(file: File) {
 export async function deleteImage(filePath: string) {
   const token = getToken();
   if (!token) throw new Error('Not authenticated');
-  
-  const id = filePath.split('/').pop(); 
+
+  const id = filePath.split('/').pop();
   const res = await fetch(`${AUTH_PRO_URL}/media/${id}`, {
     method: 'DELETE',
     headers: { 'Authorization': `Bearer ${token}` }
@@ -170,12 +189,12 @@ export async function forgotPassword(email: string): Promise<{ success: boolean;
     const res = await fetch(`${AUTH_PRO_URL}/auth/forgot-password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         email,
-        redirectUrl: `${process.env.NEXT_PUBLIC_AUTH_REDIRECT_URL}/update-password` 
+        redirectUrl: `${process.env.NEXT_PUBLIC_AUTH_REDIRECT_URL}/update-password`
       })
     });
-    
+
     if (!res.ok) {
       const data = await res.json();
       return { success: false, error: data.message || 'Reset password failed' };
@@ -215,7 +234,7 @@ export async function updateUserProfile(
 
     const res = await fetch(`${AUTH_PRO_URL}/users/me`, {
       method: 'PATCH',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },

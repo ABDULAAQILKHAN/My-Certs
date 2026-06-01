@@ -20,7 +20,7 @@ export function SiteHeader() {
     dispatch(toggleTheme())
     if (isAuthenticated) {
       try {
-        await updateThemeApi().unwrap()
+        await updateThemeApi(!isDark).unwrap()
       } catch (error) {
         console.error("Failed to update theme preference:", error)
       }

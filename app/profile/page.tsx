@@ -33,17 +33,16 @@ export default function ProfilePage() {
     refetchOnReconnect: true,
   })
   useEffect(() => {
-    if (profileData && profileData?.statusCode === 200) {
+    if (profileData && profileData.id) {
       console.log("Profile Data:", profileData)
-      const data = profileData.data;
-      if(!data) return
+      const data = profileData;
       setFormData(prev => ({
         ...prev,
         id: data.id,
-        name: data.name || "",
+        name: data.metadata?.name || data.name || "",
         email: data.email || "",
-        phone: data.phone || "",
-        avatar: (data as any).avatar || prev.avatar || "",
+        phone: data.metadata?.phone || data.phone || "",
+        avatar: data.metadata?.avatar || (data as any).avatar || prev.avatar || "",
       }))
       setTotalCertificates(data.totalCertificates || 0)
       setPublicCertificates(data.totalPublicCertificates || 0)

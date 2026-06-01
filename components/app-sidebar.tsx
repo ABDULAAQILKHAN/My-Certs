@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { useAppSelector, useAppDispatch } from "@/lib/hooks"
 import { logout } from "@/lib/slices/authSlice"
 import { toggleTheme } from "@/lib/slices/themeSlice"
+import { useUpdateThemeMutation } from "@/lib/api/themeApi"
 import { Award, Home, Upload, User, LogOut, Sun, Moon, Settings, Layers } from "lucide-react"
 import { signOut } from "@/lib/auth"
 import {
@@ -61,6 +62,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAppSelector((state) => state.auth)
   const { isDark } = useAppSelector((state) => state.theme)
 
+  const [updateThemeApi] = useUpdateThemeMutation()
+
   const handleLogout = () => {
     const error = signOut();
     if(error){
@@ -70,8 +73,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     router.push("/login")
   }
 
-  const handleThemeToggle = () => {
+  const handleThemeToggle = async () => {
     dispatch(toggleTheme())
+    if (user) {
+      try {
+        await updateThemeApi(!isDark).unwrap()
+      } catch (error) {
+        console.error("Failed to update theme preference:", error)
+      }
+    }
   }
 
   return (
