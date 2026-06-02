@@ -1,6 +1,6 @@
 "use client"
 
-import { useState , useEffect} from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useGetCertificatesQuery, Certificate } from "@/lib/api/certificatesApi"
 import { useGetGroupsQuery } from "@/lib/api/groupsApi"
@@ -29,9 +29,15 @@ export default function DashboardPage() {
   } = useGetGroupsQuery({ search: searchQuery })
 
   useEffect(() => {
-  console.log("shared cert", sharedCertificate)
-}, [sharedCertificate])
+    console.log("shared cert", sharedCertificate)
+  }, [sharedCertificate])
+
   const breadcrumbs = [{ label: "Dashboard" }]
+
+  // Derive insights from certificates list
+  const totalCertificates = certificates?.length || 0
+  const publicCertificates = certificates?.filter((c) => c.isPublic).length || 0
+  const totalViews = certificates?.reduce((acc, c) => acc + ((c as any).viewCount || 0), 0) || 0
 
   return (
     <DashboardLayout breadcrumbs={breadcrumbs}>
@@ -48,6 +54,25 @@ export default function DashboardPage() {
           <Plus className="h-4 w-4 mr-2" />
           Upload Certificate
         </button>
+      </div>
+
+      {/* Account Statistics */}
+      <div className="mb-10 pt-6">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Account Statistics</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-white/50 dark:bg-gray-900/50 p-4 rounded-xl border border-gray-100 dark:border-gray-800">
+            <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{totalCertificates}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Total Certificates</p>
+          </div>
+          <div className="bg-white/50 dark:bg-gray-900/50 p-4 rounded-xl border border-gray-100 dark:border-gray-800">
+            <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{publicCertificates}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Public Certificates</p>
+          </div>
+          <div className="bg-white/50 dark:bg-gray-900/50 p-4 rounded-xl border border-gray-100 dark:border-gray-800">
+            <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{totalViews}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Total Views</p>
+          </div>
+        </div>
       </div>
 
       {/* Search Bar */}
@@ -155,8 +180,8 @@ export default function DashboardPage() {
               Create a group to organize your certificates.
             </p>
             <button
-               onClick={() => router.push("/groups")}
-               className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-primary bg-primary/10 hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
+              onClick={() => router.push("/groups")}
+              className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-primary bg-primary/10 hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
             >
               <Plus className="h-4 w-4 mr-2" />
               Create Group

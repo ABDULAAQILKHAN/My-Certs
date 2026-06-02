@@ -40,12 +40,14 @@ export default function HomePage() {
   const cta = useReveal()
 
   return (
-    <div className="relative min-h-screen bg-background text-foreground overflow-hidden">
-      {/* ── Animated background blobs ── */}
-      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-32 -left-32 h-[420px] w-[420px] bg-primary/[0.08] blur-3xl animate-blob" />
-        <div className="absolute -bottom-40 -right-40 h-[500px] w-[500px] bg-primary/[0.06] blur-3xl animate-blob animation-delay-2000" />
-        <div className="absolute top-1/2 left-1/3 h-[300px] w-[300px] bg-accent/[0.07] blur-3xl animate-blob animation-delay-4000" />
+    <div className="relative min-h-screen bg-background transition-colors duration-300 text-foreground overflow-x-hidden">
+      {/* Improved Aesthetic Fluid Background Pattern */}
+      <div className="fixed inset-0 bg-gradient-to-br from-slate-50 via-purple-50 to-fuchsia-50 dark:from-gray-950 dark:via-gray-900 dark:to-slate-950 -z-10 transition-colors duration-300">
+        <div className="absolute inset-0 opacity-40 dark:opacity-30">
+          <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-purple-400/20 dark:bg-purple-500/10 rounded-full filter blur-[120px] animate-pulse"></div>
+          <div className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-fuchsia-400/20 dark:bg-fuchsia-500/10 rounded-full filter blur-[120px] animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-1/3 w-[40vw] h-[40vw] bg-purple-400/20 dark:bg-purple-600/10 rounded-full filter blur-[100px] animate-pulse delay-2000 mix-blend-multiply"></div>
+        </div>
       </div>
 
       <SiteHeader />
@@ -82,10 +84,10 @@ export default function HomePage() {
               </Button>
             ) : (
               <>
-                <Button asChild size="lg" className="animate-pulse-glow">
+                <Button asChild size="lg" className="bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-700 hover:to-fuchsia-700 text-white font-medium rounded-xl shadow-lg shadow-purple-600/10 dark:shadow-none transition-all transform hover:scale-[1.02] active:scale-[0.98] animate-pulse-glow">
                   <a href={`${process.env.NEXT_PUBLIC_AUTH_REDIRECT_URL}/signup?from=mycerts`}>Create your account</a>
                 </Button>
-                <Button asChild size="lg" variant="outline">
+                <Button asChild size="lg" variant="outline" className="rounded-xl border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all transform hover:scale-[1.02] active:scale-[0.98]">
                   <Link href="/login">Sign in</Link>
                 </Button>
               </>
@@ -110,8 +112,8 @@ export default function HomePage() {
         <div className="animate-slide-in-right animation-delay-300">
           <div className="relative mx-auto w-full max-w-md">
             {/* Glow behind the card */}
-            <div className="absolute -inset-3 rounded-2xl bg-gradient-to-br from-primary/20 via-transparent to-cyan-400/10 blur-xl opacity-60" />
-            <div className="relative rounded-2xl border border-white/10 bg-card/80 p-5 shadow-xl backdrop-blur-xl ring-1 ring-white/5 animate-float">
+            <div className="absolute -inset-3 rounded-2xl bg-gradient-to-br from-purple-500/20 via-transparent to-fuchsia-500/10 blur-xl opacity-60" />
+            <div className="relative rounded-2xl border border-gray-200/60 dark:border-gray-700/60 bg-white/70 dark:bg-gray-800/70 p-5 shadow-xl backdrop-blur-md ring-1 ring-white/5 animate-float transition-all hover:shadow-2xl">
               {/* Card header */}
               <div className="mb-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -215,8 +217,8 @@ export default function HomePage() {
           ].map((f, i) => (
             <div
               key={i}
-              className={`group relative rounded-2xl border border-transparent bg-card/60 p-6 backdrop-blur-sm transition-all duration-500
-                hover:border-primary/20 hover:bg-card hover:shadow-lg hover:shadow-primary/[0.04] hover:-translate-y-1
+              className={`group relative rounded-2xl border border-gray-200/40 dark:border-gray-700/40 bg-white/50 dark:bg-gray-900/40 p-6 backdrop-blur-md transition-all duration-500
+                hover:border-purple-500/30 hover:bg-white/80 dark:hover:bg-gray-800/80 hover:shadow-xl hover:-translate-y-2
                 ${features.visible ? "animate-fade-in-up" : "opacity-0 translate-y-8"}`}
               style={{ animationDelay: `${f.delay + 200}ms` }}
             >
@@ -259,8 +261,8 @@ export default function HomePage() {
           ].map((s, i) => (
             <div
               key={i}
-              className={`group relative rounded-2xl border bg-card/60 p-6 backdrop-blur-sm text-center transition-all duration-500
-                hover:border-primary/20 hover:shadow-lg hover:-translate-y-1
+              className={`group relative rounded-2xl border border-gray-200/40 dark:border-gray-700/40 bg-white/50 dark:bg-gray-900/40 p-6 backdrop-blur-md text-center transition-all duration-500
+                hover:border-purple-500/30 hover:bg-white/80 dark:hover:bg-gray-800/80 hover:shadow-xl hover:-translate-y-2
                 ${howItWorks.visible ? "animate-fade-in-up" : "opacity-0 translate-y-8"}`}
               style={{ animationDelay: `${i * 200 + 200}ms` }}
             >
@@ -277,7 +279,7 @@ export default function HomePage() {
       {/* ═══════════════════  CTA  ═══════════════════ */}
       <section ref={cta.ref} className="container mx-auto px-6 pb-20 pt-4">
         <div
-          className={`relative overflow-hidden rounded-3xl border bg-gradient-to-br from-primary/[0.06] via-card to-card p-10 text-center shadow-sm md:p-16 transition-all duration-700
+          className={`relative overflow-hidden rounded-3xl border border-gray-200/60 dark:border-gray-700/60 bg-white/70 dark:bg-gray-800/70 backdrop-blur-md p-10 text-center shadow-2xl md:p-16 transition-all duration-700
             ${cta.visible ? "animate-fade-in-up" : "opacity-0 translate-y-8"}`}
         >
           {/* decorative circles */}
@@ -298,10 +300,10 @@ export default function HomePage() {
                 </Button>
               ) : (
                 <>
-                  <Button asChild size="lg" className="animate-pulse-glow">
+                  <Button asChild size="lg" className="bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-700 hover:to-fuchsia-700 text-white font-medium rounded-xl shadow-lg shadow-purple-600/10 dark:shadow-none transition-all transform hover:scale-[1.02] active:scale-[0.98] animate-pulse-glow">
                     <a href={`${process.env.NEXT_PUBLIC_AUTH_REDIRECT_URL}/signup?from=mycerts`}>Get started free</a>
                   </Button>
-                  <Button asChild size="lg" variant="outline">
+                  <Button asChild size="lg" variant="outline" className="rounded-xl border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all transform hover:scale-[1.02] active:scale-[0.98]">
                     <Link href="/login">Sign in</Link>
                   </Button>
                 </>
@@ -312,7 +314,7 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════════  FOOTER  ═══════════════════ */}
-      <footer className="border-t bg-card/40 backdrop-blur-sm">
+      <footer className="border-t border-gray-200/60 dark:border-gray-700/60 bg-white/40 dark:bg-gray-900/40 backdrop-blur-md">
         <div className="container mx-auto px-6 py-10">
           <div className="grid gap-8 sm:grid-cols-3">
             {/* Brand */}

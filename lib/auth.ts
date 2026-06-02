@@ -77,8 +77,10 @@ export async function signIn(
         method: 'POST',
         headers: {
           'accept': 'application/json',
+          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
-        }
+        },
+        body: JSON.stringify({})
       });
     } catch (e) {
       console.error('Failed to sync user with backend:', e);
