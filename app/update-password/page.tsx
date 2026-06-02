@@ -1,12 +1,12 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { updatePassword } from "@/lib/auth"
 import { Award, Loader2, CheckCircle2, ArrowLeft, Lock } from "lucide-react"
 
-export default function UpdatePasswordPage() {
+function UpdatePasswordContent() {
   const router = useRouter()
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
@@ -179,5 +179,17 @@ export default function UpdatePasswordPage() {
         </form>
       </div>
     </div>
+  )
+}
+
+export default function UpdatePasswordPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    }>
+      <UpdatePasswordContent />
+    </Suspense>
   )
 }
