@@ -14,13 +14,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     // Initialize auth state from localStorage
     dispatch(initializeAuth())
 
-    // Check for saved theme preference or default to light mode
+    // Check for saved theme preference or default to dark mode
     const savedTheme = localStorage.getItem("theme")
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches
 
     if (savedTheme) {
       dispatch(setTheme(savedTheme === "dark"))
-    } else if (prefersDark) {
+    } else {
       dispatch(setTheme(true))
     }
   }, [dispatch])

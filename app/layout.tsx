@@ -7,7 +7,7 @@ import { Providers } from "./providers"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "My Certs - Certificate Management",
+  title: "Safe Pramaan - Certificate Management",
   description: "Manage and share your certificates online",
   authors: [{name: "Aaqil khan"}],
   icons: '/quality.png'
@@ -19,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className="dark">
       <body className={inter.className}>
         <Providers>{children}</Providers>
       </body>

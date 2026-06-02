@@ -1,15 +1,26 @@
-# 🎓 My Certs
+# 🎓 Safe-Pramaan
 
-**My Certs** is a modern certificate management web application built with **React**, **Next.js**, **Redux Toolkit**, and **RTK Query**. It helps users securely upload, manage, and share their certifications — all wrapped in a sleek, responsive UI with dark/light theme support.
+**Safe-Pramaan** is a modern certificate management web application built with **React**, **Next.js**, **Redux Toolkit**, and **RTK Query**. It helps users securely upload, manage, and share their certifications — all wrapped in a sleek, responsive UI with dark/light theme support.
 
-![My Certs Banner](https://your-image-url-here.com/banner.png) <!-- optional banner -->
+![Safe-Pramaan Banner](public/Landing%20page.png) <!-- optional banner -->
 
 ---
 
 ## 🚀 Features
 
+- **Certificate Store & Upload:** Securely upload and store your certifications in one centralized location. The platform supports seamless file uploads, ensuring your achievements are always accessible and safely backed up.
+- **Certificate Sharing:** Effortlessly share individual certificates with employers, peers, or on social media. Each certificate can generate a unique, professional link that highlights your achievement with an authenticity badge.
+- **Toggle Certificate Visibility:** Maintain complete control over your privacy. You can easily toggle individual certificates between public and private modes, deciding exactly who gets to see your credentials.
+- **Create Certificate Groups:** Organize your certificates logically by creating custom groups. Whether it's by skill, technology, or domain, grouping allows you to bundle related certifications together.
+- **Share Groups via Links:** Instead of sending multiple links, you can share an entire group of certificates using a single, unique URL. This provides a unified and professional viewing experience for the recipient.
+- **Toggle Group Visibility:** Just like individual certificates, you can control the visibility of entire groups. Keep them private while you're organizing them, and make them public when you're ready to share.
+- **Resume-Ready Domain Groups:** Grouping features are tailored for job seekers. You can curate specific sets of certificates for particular domains or job roles, making them perfect to embed directly into your resume or portfolio.
+
 ### 🛠 Tech Stack
 - **Next.js App Router** (React Framework)
+- **NestJS** - Backend API
+- **AUTH-PRO** - Custom developed microservice for authentication, using **Cloudflare R2** for storage and **Neon DB** for user storage
+- **Neon DB** - App's native database
 - **RTK Query** – API fetching and caching
 - **Redux Toolkit** – State management
 - **Tailwind CSS** – Beautiful styling with Sky Blue theming
@@ -47,33 +58,3 @@
 - Clean, professional layout
 - Unique sharable link
 - Verification badge for authenticity
-
----
-
-## 🧱 Key Components
-
-- **Responsive Navbar** with dark/light toggle
-- **Interactive Certificate Cards**
-- **Theme Provider** for persistent theme control
-- **Share Modal** with social integration
-- **Skill Tagging** for each certificate
-
----
-
-## ✅ Highlights
-
-- 🔄 **Real-time Theme Switching**
-- 📱 **Fully Responsive UI**
-- 🔍 **Advanced Search & Filter**
-- 🗃 **File Upload with Live Preview**
-- 🔗 **Unique Sharable Links**
-- 🧠 **Skill Tagging & Categorization**
-- 📤 **Social Media Integration**
-- ✅ **Certificate Authenticity Badge**
-
----
-
-## 🧪 Mock API
-
-This version uses mock API endpoints powered by RTK Query. You can easily replace them with real endpoints by editing the API service files in:
-

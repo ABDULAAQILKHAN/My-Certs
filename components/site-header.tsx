@@ -7,18 +7,20 @@ import { Button } from "@/components/ui/button"
 import { useAppSelector, useAppDispatch } from "@/lib/hooks"
 import { toggleTheme, setTheme } from "@/lib/slices/themeSlice"
 import { useUpdateThemeMutation } from "@/lib/api/themeApi"
+import { useRouter } from "next/navigation"
 
 export function SiteHeader() {
   const { isAuthenticated } = useAppSelector((state) => state.auth)
   const isDark = useAppSelector((state) => state.theme.isDark)
   const dispatch = useAppDispatch()
   const [updateThemeApi] = useUpdateThemeMutation()
+  const router = useRouter()
 
   const handleThemeToggle = async () => {
     dispatch(toggleTheme())
     if (isAuthenticated) {
       try {
-        await updateThemeApi().unwrap()
+        await updateThemeApi(!isDark).unwrap()
       } catch (error) {
         console.error("Failed to update theme preference:", error)
       }
@@ -29,8 +31,8 @@ export function SiteHeader() {
     <header className="sticky top-0 z-50 border-b bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex items-center justify-between px-6 py-4">
         <Link href="/" className="flex items-center gap-3">
-          <Image src="/quality.png" alt="My Certs" width={28} height={28} />
-          <span className="text-lg font-semibold">My Certs</span>
+          <Image src="/quality.png" alt="Safe Pramaan" width={28} height={28} />
+          <span className="text-lg font-semibold">Safe Pramaan</span>
         </Link>
 
         {/* Optional nav kept intentionally omitted as per user preference */}
@@ -54,7 +56,7 @@ export function SiteHeader() {
                 <Link href="/login">Sign in</Link>
               </Button>
               <Button asChild>
-                <a href="https://solutions-with-aaqil.vercel.app/signup?from=mycerts">Get started</a>
+                <Link href="/signup">Get started</Link>
               </Button>
             </>
           )}

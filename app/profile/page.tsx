@@ -8,14 +8,15 @@ import { useUpdateProfileMutation } from "@/lib/api/authApi"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { User, Mail, Phone, Save, Loader2, Camera } from "lucide-react"
 import { useGetUserProfileQuery } from "@/lib/api/authApi"
-import { updateUserProfile, uploadImage } from "@/lib/auth"
+import { updateUserProfile, uploadAvatar } from "@/lib/auth"
+import { validateImageFile, MAX_AVATAR_FILE_SIZE } from "@/lib/fileValidation"
+
 export default function ProfilePage() {
   const { user, token } = useAppSelector((state) => state.auth)
   const [message, setMessage] = useState("")
   const [error, setError] = useState("")
-  const [totalCertificates, setTotalCertificates] = useState(0)
-  const [publicCertificates, setPublicCertificates] = useState(0)
-  const [totalViews, setTotalViews] = useState(0)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
   const [formData, setFormData] = useState({
     id: user?.id || "",
     name: user?.name || "",
@@ -33,21 +34,18 @@ export default function ProfilePage() {
     refetchOnReconnect: true,
   })
   useEffect(() => {
-    if (profileData && profileData?.statusCode === 200) {
+    if (profileData && profileData.id) {
       console.log("Profile Data:", profileData)
-      const data = profileData.data;
-      if(!data) return
+      const data = profileData;
       setFormData(prev => ({
         ...prev,
         id: data.id,
-        name: data.name || "",
+        name: data.metadata?.name || data.name || "",
         email: data.email || "",
-        phone: data.phone || "",
-        avatar: (data as any).avatar || prev.avatar || "",
+        phone: data.metadata?.phone || data.phone || "",
+        avatar: data.metadata?.avatar || (data as any).avatar || prev.avatar || "",
       }))
-      setTotalCertificates(data.totalCertificates || 0)
-      setPublicCertificates(data.totalPublicCertificates || 0)
-      setTotalViews(data.totalViews || 0)
+
     }
     if (userError) {
       console.error("Error fetching profile:", userError)
@@ -73,8 +71,10 @@ function formatIndianNumber(input: string): string {
   // Return with +91 prefix
   return `+91 ${digits}`;
 }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (isSubmitting) return
     setError("")
     setMessage("")
     if(!formData.name || !formData.email || !formData.phone){
@@ -86,6 +86,7 @@ function formatIndianNumber(input: string): string {
       return
     }
     formData.phone = formatIndianNumber(formData.phone);
+    setIsSubmitting(true)
     try {
       const payload = {
           name: formData.name,
@@ -110,6 +111,8 @@ function formatIndianNumber(input: string): string {
       setTimeout(() => setMessage(""), 3000)
     } catch (err: any) {
       setError(err.data?.message || "Failed to update profile")
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -130,28 +133,28 @@ function formatIndianNumber(input: string): string {
           <p className="mt-2 text-gray-600 dark:text-gray-400">Manage your account information and preferences</p>
         </div>
 
-        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-lg rounded-lg overflow-hidden border border-gray-200/50 dark:border-gray-700/50">
-          <div className="p-6">
-            {message && (
-              <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
-                <p className="text-sm text-green-600 dark:text-green-400">{message}</p>
-              </div>
-            )}
+        <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md shadow-xl rounded-2xl overflow-hidden border border-gray-200/60 dark:border-gray-700/60 shadow-slate-200/50 dark:shadow-none">
+          <form onSubmit={handleSubmit}>
+            <div className="p-6">
+              {message && (
+                <div className="mb-6 p-3.5 bg-green-50 dark:bg-green-950/30 border border-green-200/60 dark:border-green-900/50 rounded-xl flex items-start space-x-2">
+                  <span className="text-green-600 dark:text-green-400 text-sm font-medium">{message}</span>
+                </div>
+              )}
 
-            {error && (
-              <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
-                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-              </div>
-            )}
+              {error && (
+                <div className="mb-6 p-3.5 bg-red-50 dark:bg-red-950/30 border border-red-200/60 dark:border-red-900/50 rounded-xl flex items-start space-x-2 animate-shake">
+                  <span className="text-red-600 dark:text-red-400 text-sm font-medium">{error}</span>
+                </div>
+              )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
               {/* Profile Picture */}
               <div className="flex items-center space-x-6">
                 <div className="relative">
                   <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center">
                     {formData.avatar ? (
                       <img
-                        src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/images/${formData.avatar}`}
+                        src={formData.avatar.startsWith('http') ? formData.avatar : `${process.env.NEXT_PUBLIC_S3_BUCKET_URL}/${formData.avatar}`}
                         alt="Profile"
                         className="w-24 h-24 rounded-full object-cover"
                       />
@@ -170,15 +173,20 @@ function formatIndianNumber(input: string): string {
                   <input
                     id="avatarInput"
                     type="file"
-                    accept="image/*"
+                    accept=".jpg,.jpeg,.png,.webp,.gif"
                     className="hidden"
                     onChange={async (e) => {
                       const file = e.target.files?.[0]
                       if (!file) return
+                      const validationError = validateImageFile(file, MAX_AVATAR_FILE_SIZE)
+                      if (validationError) {
+                        setError(validationError)
+                        return
+                      }
                       setIsUploadingAvatar(true)
                       setError("")
                       try {
-                        const path = await uploadImage(file)
+                        const path = await uploadAvatar(file)
                         setFormData(prev => ({ ...prev, avatar: path }))
                         // Immediately persist avatar metadata (optional early save)
                         await updateUserProfile({ avatar: path })
@@ -200,86 +208,80 @@ function formatIndianNumber(input: string): string {
               </div>
 
               {/* Form Fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    <User className="inline h-4 w-4 mr-1" />
+                  <label htmlFor="name" className="block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">
                     Full Name
                   </label>
-                  <input
-                    type="text"
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary focus:border-primary"
-                    placeholder="Enter your full name"
-                  />
+                  <div className="relative rounded-xl shadow-sm">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                      <User size={18} />
+                    </div>
+                    <input
+                      type="text"
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl bg-white/50 dark:bg-gray-900/50 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm"
+                      placeholder="Enter your full name"
+                      maxLength={100}
+                    />
+                  </div>
                 </div>
 
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    <Mail className="inline h-4 w-4 mr-1" />
+                  <label htmlFor="email" className="block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">
                     Email Address
                   </label>
-                  <input
-                    disabled
-                    type="email"
-                    id="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50 focus:outline-none focus:ring-primary focus:border-primary"
-                    placeholder="Enter your email address"
-                  />
+                  <div className="relative rounded-xl shadow-sm">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                      <Mail size={18} />
+                    </div>
+                    <input
+                      disabled
+                      type="email"
+                      id="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl bg-white/50 dark:bg-gray-900/50 text-gray-900 dark:text-white disabled:opacity-50 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm"
+                      placeholder="Enter your email address"
+                    />
+                  </div>
                 </div>
 
                 <div className="md:col-span-2">
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    <Phone className="inline h-4 w-4 mr-1" />
+                  <label htmlFor="phone" className="block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">
                     Phone Number
                   </label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary focus:border-primary"
-                    placeholder="Enter your phone number"
-                  />
-                </div>
-              </div>
-
-              {/* Account Statistics */}
-              <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Account Statistics</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                    <p className="text-2xl font-bold text-primary">{totalCertificates}</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Total Certificates</p>
-                  </div>
-                  <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                    <p className="text-2xl font-bold text-primary">{publicCertificates}</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Public Certificates</p>
-                  </div>
-                  <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                    <p className="text-2xl font-bold text-primary">{totalViews}</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Total Views</p>
+                  <div className="relative rounded-xl shadow-sm">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                      <Phone size={18} />
+                    </div>
+                    <input
+                      type="tel"
+                      id="phone"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl bg-white/50 dark:bg-gray-900/50 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm"
+                      placeholder="Enter your phone number"
+                      maxLength={20}
+                    />
                   </div>
                 </div>
               </div>
-            </form>
-          </div>
+            </div>
 
-          <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600 flex justify-end">
-            <button
-              type="submit"
-              disabled={isLoading}
-              onClick={handleSubmit}
-              className="px-6 py-2 bg-primary text-white rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
-            >
-              {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-              Save Changes
-            </button>
-          </div>
+            <div className="px-6 py-4 bg-gray-50/50 dark:bg-gray-800/50 border-t border-gray-200/60 dark:border-gray-700/60 flex justify-end">
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-700 hover:to-fuchsia-700 text-white font-medium rounded-xl shadow-lg shadow-purple-600/10 dark:shadow-none focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform active:scale-[0.98] flex items-center"
+              >
+                {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Save className="h-5 w-5 mr-2" />}
+                Save Changes
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </DashboardLayout>

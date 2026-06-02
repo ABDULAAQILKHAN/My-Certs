@@ -58,7 +58,7 @@ export default function PublicCertificatePage() {
           <div className="flex justify-center mb-4">
             <Award className="h-12 w-12 text-primary" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">My Certs</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Safe Pramaan</h1>
           <p className="text-gray-600 dark:text-gray-400">Professional Certificate Verification</p>
         </div>
 
@@ -161,7 +161,7 @@ export default function PublicCertificatePage() {
         {/* Footer */}
         <div className="text-center mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Powered by <a href="https://solutions-with-aaqil.vercel.app/" target="_" className="font-semibold text-primary underline hover:opacity-30">Solutions with AAQIL</a>
+            Powered by <a href={process.env.NEXT_PUBLIC_AUTH_REDIRECT_URL} target="_" className="font-semibold text-primary underline hover:opacity-30">Solutions with AAQIL</a>
           </p>
         </div>
       </div>

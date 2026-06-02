@@ -1,14 +1,14 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import SiteHeader from "@/components/site-header"
 import { useAppSelector } from "@/lib/hooks"
-import { Eye, EyeOff, Award, Loader2, CircleCheckBig } from "lucide-react"
-import {signUp} from '@/lib/auth'
+import { Eye, EyeOff, Award, Loader2, CircleCheckBig, Check, X, User, Mail, Phone, Lock } from "lucide-react"
+import { signUp } from '@/lib/auth'
+
 export default function SignupPage() {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
@@ -21,294 +21,322 @@ export default function SignupPage() {
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [isSuccessOpen, setIsSuccessOpen] = useState<boolean>(false)
 
+  // Live password validation state blocks
+  const [passwordConditions, setPasswordConditions] = useState({
+    length: false,
+    uppercase: false,
+    lowercase: false,
+    number: false,
+    specialChar: false,
+  })
+
   const router = useRouter()
   const { isAuthenticated } = useAppSelector((state) => state.auth)
 
   useEffect(() => {
-    if ( isAuthenticated) {
+    if (isAuthenticated) {
       router.push("/dashboard")
     }
-  }, [isAuthenticated])
+  }, [isAuthenticated, router])
 
- const validateEmail = (email: string) => {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
-  };
+  // Track password changes to update live conditions indicator UI
+  useEffect(() => {
+    setPasswordConditions({
+      length: password.length >= 8,
+      uppercase: /[A-Z]/.test(password),
+      lowercase: /[a-z]/.test(password),
+      number: /[0-9]/.test(password),
+      specialChar: /[!@#$%^&*]/.test(password),
+    })
+  }, [password])
 
-const validatePassword = (password: string): string => {
-	if (!password) return 'Password is required';
-	if (password.length < 8) return 'Password must be at least 8 characters long';
-	if (!/[A-Z]/.test(password))
-		return 'Password must contain at least one uppercase letter';
-	if (!/[a-z]/.test(password))
-		return 'Password must contain at least one lowercase letter';
-	if (!/[0-9]/.test(password))
-		return 'Password must contain at least one number';
-	if (!/[!@#$%^&*]/.test(password))
-		return 'Password must contain at least one special character';
-	return '';
-};
+  const validateEmail = (email: string) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return re.test(email)
+  }
 
   const validatePhoneNumber = (phone: string) => {
-    // Simple phone number validation - adjust based on your requirements
-    const re = /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,3}[-\s.]?[0-9]{3,6}$/;
-    return re.test(phone);
-  };
+    const re = /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,3}[-\s.]?[0-9]{3,6}$/
+    return re.test(phone)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
 
-    // Name validation
-    if (!name.trim()) {
-      setError("Name is required");
-      return;
-    }
+    if (!name.trim()) return setError("Name is required")
+    if (!email.trim()) return setError("Email is required")
+    if (!validateEmail(email)) return setError("Please enter a valid email address")
+    if (phoneNumber && !validatePhoneNumber(phoneNumber)) return setError("Please enter a valid phone number")
+    if (!password) return setError("Password is required")
 
-    // Email validation
-    if (!email.trim()) {
-      setError("Email is required");
-      return;
+    // Ensure all live conditions pass upon submission evaluation
+    const allConditionsMet = Object.values(passwordConditions).every(Boolean)
+    if (!allConditionsMet) {
+      return setError("Please meet all password strength security guidelines.")
     }
-    
-    if (!validateEmail(email)) {
-      setError("Please enter a valid email address");
-      return;
-    }
-
-    // Phone number validation (optional)
-    if (phoneNumber && !validatePhoneNumber(phoneNumber)) {
-      setError("Please enter a valid phone number");
-      return;
-    }
-
-    // Password validation
-    if (!password) {
-      setError("Password is required");
-      return;
-    }
-
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters long");
-      return;
-    }
-    const passwordError = validatePassword(password)
-    if(passwordError){
-      setError(passwordError)
-      return
-    }
-
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      return;
+      return setError("Passwords do not match")
     }
 
     setIsLoading(true)
     try {
-      const result = await signUp(email, password, name, phoneNumber)
-      if (result?.user?.identities?.length === 0) {
-        setError("Email already registered.")
+      const { error } = await signUp(email, password, name, phoneNumber)
+
+      if (error) {
+        setError(error)
         return
       }
-      if (result?.user?.id) {
-        setIsSuccessOpen(true)
-      }
-      setTimeout(() => {
-        setIsSuccessOpen(false)
-        router.push("/login")
-      }, 4000)
-    } catch (err: any) {
-      setError(err.data?.message || "Signup failed")
+      setIsSuccessOpen(true)
+      setTimeout(() => router.push('/login'), 3000)
+    } catch (err) {
+      setError('Signup failed. Please try again.')
     } finally {
       setIsLoading(false)
     }
   }
 
-
   return (
     <>
-    <SiteHeader />
-    <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 relative">
-      {isSuccessOpen && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-              <div className="bg-secondary rounded-lg shadow-xl p-6 max-w-md w-full">
-                <div className="flex flex-col items-center text-center">
-                  <CircleCheckBig size={"90px"} className="text-green-500 mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                    Signup Successful!
-                  </h3>
-                  <p className="text-gray-600 mb-6">
-                    Please check your email for verification before logging in.
-                  </p>
-                  <button
-                    onClick={()=>setIsSuccessOpen(false)}
-                    className="px-6 py-2 bg-primary text-white rounded-md hover:bg-green-700 transition-colors"
-                  >
-                    Got it!
-                  </button>
+      <SiteHeader />
+      <div className="h-full flex items-center justify-center px-4 sm:px-6 lg:px-8 relative py-12">
+
+        {/* Success Modal Overlay */}
+        {isSuccessOpen && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all animate-fadeIn">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 max-w-md w-full border border-gray-100 dark:border-gray-700 transform scale-100 transition-transform">
+              <div className="flex flex-col items-center text-center">
+                <div className="w-20 h-20 bg-green-50 dark:bg-green-900/30 rounded-full flex items-center justify-center mb-4">
+                  <CircleCheckBig size="50px" className="text-green-500" />
                 </div>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                  Signup Successful!
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 max-w-xs">
+                  We've sent a validation link to <span className="font-semibold text-gray-700 dark:text-gray-300">{email}</span>. Please check your email to verify your account.
+                </p>
+                <button
+                  onClick={() => setIsSuccessOpen(false)}
+                  className="w-full py-2.5 px-4 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl transition-all shadow-lg shadow-green-600/20"
+                >
+                  Got it!
+                </button>
               </div>
-            </div>
-      )}
-      {/* Abstract Background Pattern */}
-      <div className="fixed inset-0 bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-        <div className="absolute inset-0 opacity-30 dark:opacity-20">
-          <div className="absolute inset-0 bg-gradient-to-r from-sky-400/20 via-blue-500/20 to-indigo-600/20 dark:from-sky-600/10 dark:via-blue-700/10 dark:to-indigo-800/10"></div>
-          <div className="absolute top-0 left-1/4 w-72 h-72 bg-sky-300/30 dark:bg-sky-600/20 rounded-full mix-blend-multiply filter blur-xl animate-pulse"></div>
-          <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-blue-300/30 dark:bg-blue-600/20 rounded-full mix-blend-multiply filter blur-xl animate-pulse delay-1000"></div>
-          <div className="absolute bottom-1/4 left-1/3 w-80 h-80 bg-indigo-300/30 dark:bg-indigo-600/20 rounded-full mix-blend-multiply filter blur-xl animate-pulse delay-2000"></div>
-        </div>
-      </div>
-
-      <div className="max-w-md w-full space-y-8 relative z-10">
-        <div className="text-center">
-          <div className="flex justify-center">
-            <Award className="h-12 w-12 text-primary" />
-          </div>
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">Create your account</h2>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Join My Certs to manage your certificates</p>
-        </div>
-
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm p-8 rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50">
-            {error && (
-              <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
-                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-              </div>
-            )}
-
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Full Name
-                </label>
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  autoComplete="name"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary focus:border-primary"
-                  placeholder="Enter your full name"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Email address
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary focus:border-primary"
-                  placeholder="Enter your email"
-                />
-              </div>
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Phone number
-                </label>
-                <input
-                  id="mobile"
-                  name="mobile"
-                  type="number"
-                  autoComplete="number"
-                  required
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary focus:border-primary"
-                  placeholder="Enter your contact number"
-                />
-              </div>
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Password
-                </label>
-                <div className="mt-1 relative">
-                  <input
-                    id="password"
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    autoComplete="new-password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="block w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary focus:border-primary"
-                    placeholder="Enter your password"
-                  />
-                  <button
-                    type="button"
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-gray-400" />
-                    ) : (
-                      <Eye className="h-4 w-4 text-gray-400" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Confirm Password
-                </label>
-                <div className="mt-1 relative">
-                  <input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type={showConfirmPassword ? "text" : "password"}
-                    autoComplete="new-password"
-                    required
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="block w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary focus:border-primary"
-                    placeholder="Confirm your password"
-                  />
-                  <button
-                    type="button"
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className="h-4 w-4 text-gray-400" />
-                    ) : (
-                      <Eye className="h-4 w-4 text-gray-400" />
-                    )}
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full mt-6 flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Create account"}
-            </button>
-
-            <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Already have an account?{" "}
-                <Link href="/login" className="text-primary hover:text-primary/80 font-medium transition-colors">
-                  Sign in
-                </Link>
-              </p>
             </div>
           </div>
-        </form>
+        )}
+
+        {/* Improved Aesthetic Fluid Background Pattern */}
+        <div className="fixed inset-0 bg-gradient-to-br from-slate-50 via-purple-50 to-fuchsia-50 dark:from-gray-950 dark:via-gray-900 dark:to-slate-950 -z-10 transition-colors duration-300">
+          <div className="absolute inset-0 opacity-40 dark:opacity-30">
+            <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-purple-400/20 dark:bg-purple-500/10 rounded-full filter blur-[120px] animate-pulse"></div>
+            <div className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-fuchsia-400/20 dark:bg-fuchsia-500/10 rounded-full filter blur-[120px] animate-pulse delay-1000"></div>
+          </div>
+        </div>
+
+        <div className="max-w-md w-full space-y-6 relative z-10">
+          <div className="text-center space-y-2">
+            <div className="flex justify-center">
+              <Award className="h-12 w-12 text-primary" />
+            </div>
+            <h2 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white">Create your account</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Join Safe Pramaan to securely manage and share digital credentials</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md p-8 rounded-2xl shadow-xl border border-gray-200/60 dark:border-gray-700/60 shadow-slate-200/50 dark:shadow-none">
+              {error && (
+                <div className="mb-5 p-3.5 bg-red-50 dark:bg-red-950/30 border border-red-200/60 dark:border-red-900/50 rounded-xl flex items-start space-x-2 animate-shake">
+                  <span className="text-red-600 dark:text-red-400 text-sm font-medium">{error}</span>
+                </div>
+              )}
+
+              <div className="space-y-4">
+                {/* Full Name Input */}
+                <div>
+                  <label htmlFor="name" className="block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">
+                    Full Name
+                  </label>
+                  <div className="relative rounded-xl shadow-sm">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                      <User size={18} />
+                    </div>
+                    <input
+                      id="name"
+                      type="text"
+                      required
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl bg-white/50 dark:bg-gray-900/50 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm"
+                      placeholder="John Doe"
+                    />
+                  </div>
+                </div>
+
+                {/* Email Address Input */}
+                <div>
+                  <label htmlFor="email" className="block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">
+                    Email address
+                  </label>
+                  <div className="relative rounded-xl shadow-sm">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                      <Mail size={18} />
+                    </div>
+                    <input
+                      id="email"
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl bg-white/50 dark:bg-gray-900/50 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm"
+                      placeholder="you@example.com"
+                    />
+                  </div>
+                </div>
+
+                {/* Phone Number Input */}
+                <div>
+                  <label htmlFor="mobile" className="block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">
+                    Phone number
+                  </label>
+                  <div className="relative rounded-xl shadow-sm">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                      <Phone size={18} />
+                    </div>
+                    <input
+                      id="mobile"
+                      type="tel"
+                      required
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl bg-white/50 dark:bg-gray-900/50 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm"
+                      placeholder="+1 (555) 000-0000"
+                    />
+                  </div>
+                </div>
+
+                {/* Password Input */}
+                <div>
+                  <label htmlFor="password" className="block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">
+                    Password
+                  </label>
+                  <div className="relative rounded-xl shadow-sm">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                      <Lock size={18} />
+                    </div>
+                    <input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="block w-full pl-10 pr-10 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl bg-white/50 dark:bg-gray-900/50 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm"
+                      placeholder="••••••••"
+                    />
+                    <button
+                      type="button"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+
+                  {/* Live Password Checklist Panel UI */}
+                  {password.length > 0 && (
+                    <div className="mt-2.5 p-3 bg-slate-50 dark:bg-gray-900/40 rounded-xl border border-gray-100 dark:border-gray-800 text-xs space-y-1.5 animate-slideDown">
+                      <p className="font-semibold text-gray-600 dark:text-gray-400 mb-1">Password Strength Requirements:</p>
+                      <div className="grid grid-cols-2 gap-x-2 gap-y-1">
+                        <span className={`flex items-center gap-1.5 ${passwordConditions.length ? 'text-green-600 dark:text-green-400' : 'text-gray-400'}`}>
+                          {passwordConditions.length ? <Check size={14} /> : <X size={14} />} Min 8 characters
+                        </span>
+                        <span className={`flex items-center gap-1.5 ${passwordConditions.uppercase ? 'text-green-600 dark:text-green-400' : 'text-gray-400'}`}>
+                          {passwordConditions.uppercase ? <Check size={14} /> : <X size={14} />} Uppercase letter
+                        </span>
+                        <span className={`flex items-center gap-1.5 ${passwordConditions.lowercase ? 'text-green-600 dark:text-green-400' : 'text-gray-400'}`}>
+                          {passwordConditions.lowercase ? <Check size={14} /> : <X size={14} />} Lowercase letter
+                        </span>
+                        <span className={`flex items-center gap-1.5 ${passwordConditions.number ? 'text-green-600 dark:text-green-400' : 'text-gray-400'}`}>
+                          {passwordConditions.number ? <Check size={14} /> : <X size={14} />} One number
+                        </span>
+                        <span className={`flex items-center gap-1.5 ${passwordConditions.specialChar ? 'text-green-600 dark:text-green-400' : 'text-gray-400'}`}>
+                          {passwordConditions.specialChar ? <Check size={14} /> : <X size={14} />} Special character (!@#$)
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Confirm Password Input */}
+                <div>
+                  <label htmlFor="confirmPassword" className="block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">
+                    Confirm Password
+                  </label>
+                  <div className="relative rounded-xl shadow-sm">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                      <Lock size={18} />
+                    </div>
+                    <input
+                      id="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      required
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className={`block w-full pl-10 pr-10 py-2.5 border rounded-xl bg-white/50 dark:bg-gray-900/50 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm ${confirmPassword
+                        ? password === confirmPassword
+                          ? "border-green-300 dark:border-green-800 focus:ring-green-500/20 focus:border-green-500"
+                          : "border-red-300 dark:border-red-800 focus:ring-red-500/20 focus:border-red-500"
+                        : "border-gray-200 dark:border-gray-700"
+                        }`}
+                      placeholder="••••••••"
+                    />
+                    <button
+                      type="button"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                      {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+
+                  {/* Live Comparison Matching Status UI */}
+                  {confirmPassword.length > 0 && (
+                    <div className="mt-1.5 flex items-center text-xs animate-fadeIn">
+                      {password === confirmPassword ? (
+                        <span className="text-green-600 dark:text-green-400 flex items-center gap-1 font-medium">
+                          <Check size={14} /> Passwords match perfectly
+                        </span>
+                      ) : (
+                        <span className="text-red-500 dark:text-red-400 flex items-center gap-1 font-medium">
+                          <X size={14} /> Passwords do not match yet
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full mt-6 flex justify-center py-2.5 px-4 bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-700 hover:to-fuchsia-700 text-white font-medium rounded-xl shadow-lg shadow-purple-600/10 dark:shadow-none focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform active:scale-[0.98]"
+              >
+                {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Create account"}
+              </button>
+
+              <div className="mt-5 text-center">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Already have an account?{" "}
+                  <Link href="/login" className="text-purple-600 dark:text-purple-400 hover:underline font-semibold transition-all">
+                    Sign in
+                  </Link>
+                </p>
+              </div>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
     </>
   )
 }

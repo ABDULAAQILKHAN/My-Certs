@@ -2,17 +2,24 @@
 
 import { useState } from "react"
 import type { Certificate } from "@/lib/api/certificatesApi"
+import type { Group } from "@/lib/api/groupsApi"
 import { X, Copy, Check, Facebook, Twitter, Linkedin, Mail } from "lucide-react"
 
 interface ShareModalProps {
-  certificate: Certificate
+  certificate?: Certificate
+  group?: Group
   onClose: () => void
 }
 
-export function ShareModal({ certificate, onClose }: ShareModalProps) {
+export function ShareModal({ certificate, group, onClose }: ShareModalProps) {
   const [copied, setCopied] = useState(false)
 
-  const shareUrl = `${window.location.origin}/public/${certificate.credentialId}`
+  const isGroup = !!group
+  const title = isGroup ? group?.name : certificate?.title
+  const typeText = isGroup ? "collection" : "certificate"
+  const shareUrl = isGroup 
+    ? `${window.location.origin}/public/groups/${group?.id}`
+    : `${window.location.origin}/public/${certificate?.credentialId}`
 
   const handleCopyLink = async () => {
     try {
@@ -34,7 +41,7 @@ export function ShareModal({ certificate, onClose }: ShareModalProps) {
     {
       name: "Twitter",
       icon: Twitter,
-      url: `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(`Check out my ${certificate.title} certificate!`)}`,
+      url: `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(`Check out my ${title} ${typeText}!`)}`,
       color: "bg-sky-500 hover:bg-sky-600",
     },
     {
@@ -46,7 +53,7 @@ export function ShareModal({ certificate, onClose }: ShareModalProps) {
     {
       name: "Email",
       icon: Mail,
-      url: `mailto:?subject=${encodeURIComponent(`${certificate.title} Certificate`)}&body=${encodeURIComponent(`Check out my certificate: ${shareUrl}`)}`,
+      url: `mailto:?subject=${encodeURIComponent(`${title} ${isGroup ? 'Certificate Group' : 'Certificate'}`)}&body=${encodeURIComponent(`Check out my ${typeText}: ${shareUrl}`)}`,
       color: "bg-gray-600 hover:bg-gray-700",
     },
   ]
@@ -55,7 +62,7 @@ export function ShareModal({ certificate, onClose }: ShareModalProps) {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Share Certificate</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Share {isGroup ? 'Group' : 'Certificate'}</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
             <X className="h-5 w-5" />
           </button>
@@ -63,7 +70,7 @@ export function ShareModal({ certificate, onClose }: ShareModalProps) {
 
         <div className="p-6">
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-            Share your {certificate.title} certificate with others
+            Share your {isGroup ? <strong>{title}</strong> : title} {typeText} with others
           </p>
 
           {/* Copy Link */}

@@ -2,6 +2,8 @@ import { createApi } from "@reduxjs/toolkit/query/react"
 import { baseQueryWithAuthHandling } from "./baseQuery"
 import { ApiResponse } from "./certificatesApi"
 
+const AUTH_PRO_URL = process.env.NEXT_PUBLIC_AUTH_PRO_URL || 'https://p01--auth-pro--f2ksfrkf9d45.code.run';
+
 export interface User {
   id: string
   email: string
@@ -13,6 +15,7 @@ export interface User {
   totalViews?: number
   createdAt: string
   updatedAt: string
+  metadata?: any
 }
 
 export interface LoginRequest {
@@ -40,12 +43,12 @@ export const authApi = createApi({
   baseQuery: baseQueryWithAuthHandling,
   tagTypes: ["User"],
   endpoints: (builder) => ({
-    getUserProfile: builder.query<AuthResponse, void>({
+    getUserProfile: builder.query<User, void>({
       query: () => ({
-        url: "/profile",
+        url: `${AUTH_PRO_URL}/users/me`,
         method: "GET",
       }),
-      //providesTags: ["User"],
+      providesTags: ["User"],
     }),
     login: builder.mutation<AuthResponse, null>({
       query: () => ({
@@ -63,7 +66,7 @@ export const authApi = createApi({
     // }),
     forgotPassword: builder.mutation<{ message: string }, { email: string }>({
       query: (data) => ({
-        url: "/forgot-password?from=mycerts",
+        url: "/forgot-password?from=safe-pramaan",
         method: "POST",
         body: data,
       }),
@@ -71,7 +74,7 @@ export const authApi = createApi({
 
     updateProfile: builder.mutation<User, Partial<User>>({
       query: (userData) => ({
-        url: "/profile",
+        url: `${AUTH_PRO_URL}/users/me`,
         method: "PATCH",
         body: userData,
       }),

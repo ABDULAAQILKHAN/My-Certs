@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { useAppSelector, useAppDispatch } from "@/lib/hooks"
 import { logout } from "@/lib/slices/authSlice"
 import { toggleTheme } from "@/lib/slices/themeSlice"
+import { useUpdateThemeMutation } from "@/lib/api/themeApi"
 import { Award, Home, Upload, User, LogOut, Sun, Moon, Settings, Layers } from "lucide-react"
 import { signOut } from "@/lib/auth"
 import {
@@ -39,11 +40,11 @@ const navigationItems = [
     url: "/upload",
     icon: Upload,
   },
-  {
-    title: "Profile",
-    url: "/profile",
-    icon: User,
-  },
+  // {
+  //   title: "Profile",
+  //   url: "/profile",
+  //   icon: User,
+  // },
 ]
 
 const settingsItems = [
@@ -61,17 +62,26 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAppSelector((state) => state.auth)
   const { isDark } = useAppSelector((state) => state.theme)
 
+  const [updateThemeApi] = useUpdateThemeMutation()
+
   const handleLogout = () => {
     const error = signOut();
-    if(error){
+    if (error) {
       console.log(error)
     }
     dispatch(logout())
     router.push("/login")
   }
 
-  const handleThemeToggle = () => {
+  const handleThemeToggle = async () => {
     dispatch(toggleTheme())
+    if (user) {
+      try {
+        await updateThemeApi(!isDark).unwrap()
+      } catch (error) {
+        console.error("Failed to update theme preference:", error)
+      }
+    }
   }
 
   return (
@@ -82,7 +92,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <Award className="size-4" />
           </div>
           <div className="grid flex-1 text-left text-sm leading-tight">
-            <span className="truncate font-semibold">My Certs</span>
+            <span className="truncate font-semibold">Safe Pramaan</span>
             <span className="truncate text-xs text-muted-foreground">Certificate Manager</span>
           </div>
         </div>
@@ -90,26 +100,41 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
       <SidebarContent>
         <SidebarGroup>
+          <SidebarGroupLabel>Profile</SidebarGroupLabel>
+          <SidebarMenuItem>
+            <SidebarMenuButton size="lg" asChild>
+              <Link href="/profile">
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <User className="size-4" />
+                </div>
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-semibold">{user?.name || "User"}</span>
+                  <span className="truncate text-xs text-muted-foreground">{user?.email}</span>
+                </div>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {navigationItems.map((item) => {
-                 const isActive = pathname === item.url || (item.url !== "/dashboard" && pathname?.startsWith(`${item.url}/`))
-                 return (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton 
-                    asChild 
-                    isActive={isActive} 
-                    tooltip={item.title}
-                    className={isActive ? "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground" : ""}
-                  >
-                    <Link href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )})}
+                const isActive = pathname === item.url || (item.url !== "/dashboard" && pathname?.startsWith(`${item.url}/`))
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive}
+                      tooltip={item.title}
+                      className={isActive ? "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground" : ""}
+                    >
+                      <Link href={item.url}>
+                        <item.icon />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -141,7 +166,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
       <SidebarFooter>
         <SidebarMenu>
-          <SidebarMenuItem>
+          {/* <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link href="/profile">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -153,8 +178,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 </div>
               </Link>
             </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
+          </SidebarMenuItem> */}
+          <SidebarMenuItem className="bg-red-600">
             <SidebarMenuButton onClick={handleLogout}>
               <LogOut />
               <span>Sign Out</span>

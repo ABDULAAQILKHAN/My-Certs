@@ -1,6 +1,8 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQueryWithAuthHandling } from "./baseQuery";
 
+const AUTH_PRO_URL = process.env.NEXT_PUBLIC_AUTH_PRO_URL || 'https://p01--auth-pro--f2ksfrkf9d45.code.run';
+
 export interface ApiResponse<T> {
   success: boolean;
   statusCode: number;
@@ -16,14 +18,18 @@ export const themeApi = createApi({
   tagTypes: ["Theme"],
   endpoints: (builder) => ({
     getTheme: builder.query<boolean, void>({
-      query: () => "/profile/theme",
-      transformResponse: (response: ApiResponse<boolean>) => response.data,
+      query: () => `${AUTH_PRO_URL}/users/me`,
+      transformResponse: (response: any) => {
+        const theme = response.metadata?.theme;
+        return theme === "dark" || theme === true;
+      },
       providesTags: ["Theme"],
     }),
-    updateTheme: builder.mutation<ApiResponse<any>, void>({
-      query: () => ({
-        url: "/profile/theme",
-        method: "PUT",
+    updateTheme: builder.mutation<ApiResponse<any>, boolean>({
+      query: (isDark) => ({
+        url: `${AUTH_PRO_URL}/users/me`,
+        method: "PATCH",
+        body: { metadata: { theme: isDark ? "dark" : "light" } },
       }),
       invalidatesTags: ["Theme"],
     }),
