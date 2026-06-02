@@ -58,7 +58,7 @@ export default function PublicCertificatePage() {
           <div className="flex justify-center mb-4">
             <Award className="h-12 w-12 text-primary" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">My Certs</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Safe Pramaan</h1>
           <p className="text-gray-600 dark:text-gray-400">Professional Certificate Verification</p>
         </div>
 

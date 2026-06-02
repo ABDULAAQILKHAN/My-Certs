@@ -4,7 +4,7 @@ const AUTH_PRO_URL = process.env.NEXT_PUBLIC_AUTH_PRO_URL || 'https://p01--auth-
 
 const getToken = () => {
   if (typeof window !== 'undefined') {
-    return localStorage.getItem('mycerts_token');
+    return localStorage.getItem('safe_pramaan_token');
   }
   return null;
 };

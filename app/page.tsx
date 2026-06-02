@@ -85,7 +85,7 @@ export default function HomePage() {
             ) : (
               <>
                 <Button asChild size="lg" className="bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-700 hover:to-fuchsia-700 text-white font-medium rounded-xl shadow-lg shadow-purple-600/10 dark:shadow-none transition-all transform hover:scale-[1.02] active:scale-[0.98] animate-pulse-glow">
-                  <a href={`${process.env.NEXT_PUBLIC_AUTH_REDIRECT_URL}/signup?from=mycerts`}>Create your account</a>
+                  <a href={`${process.env.NEXT_PUBLIC_AUTH_REDIRECT_URL}/signup?from=safe-pramaan`}>Create your account</a>
                 </Button>
                 <Button asChild size="lg" variant="outline" className="rounded-xl border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all transform hover:scale-[1.02] active:scale-[0.98]">
                   <Link href="/login">Sign in</Link>
@@ -301,7 +301,7 @@ export default function HomePage() {
               ) : (
                 <>
                   <Button asChild size="lg" className="bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-700 hover:to-fuchsia-700 text-white font-medium rounded-xl shadow-lg shadow-purple-600/10 dark:shadow-none transition-all transform hover:scale-[1.02] active:scale-[0.98] animate-pulse-glow">
-                    <a href={`${process.env.NEXT_PUBLIC_AUTH_REDIRECT_URL}/signup?from=mycerts`}>Get started free</a>
+                    <a href={`${process.env.NEXT_PUBLIC_AUTH_REDIRECT_URL}/signup?from=safe-pramaan`}>Get started free</a>
                   </Button>
                   <Button asChild size="lg" variant="outline" className="rounded-xl border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all transform hover:scale-[1.02] active:scale-[0.98]">
                     <Link href="/login">Sign in</Link>
@@ -320,8 +320,8 @@ export default function HomePage() {
             {/* Brand */}
             <div>
               <div className="flex items-center gap-2">
-                <Image src="/quality.png" alt="My Certs" width={22} height={22} />
-                <span className="text-base font-semibold">My Certs</span>
+                <Image src="/quality.png" alt="Safe Pramaan" width={22} height={22} />
+                <span className="text-base font-semibold">Safe Pramaan</span>
               </div>
               <p className="mt-3 text-sm text-muted-foreground leading-relaxed max-w-xs">
                 Securely store, organize and share your certificates with beautiful, privacy-aware links.
@@ -335,7 +335,7 @@ export default function HomePage() {
                 <li><a href="#features" className="hover:text-foreground transition-colors">Features</a></li>
                 <li><a href="#how-it-works" className="hover:text-foreground transition-colors">How it works</a></li>
                 <li><Link href="/login" className="hover:text-foreground transition-colors">Login</Link></li>
-                <li><a href={`${process.env.NEXT_PUBLIC_AUTH_REDIRECT_URL}/signup?from=mycerts`} className="hover:text-foreground transition-colors">Signup</a></li>
+                <li><a href={`${process.env.NEXT_PUBLIC_AUTH_REDIRECT_URL}/signup?from=safe-pramaan`} className="hover:text-foreground transition-colors">Signup</a></li>
               </ul>
             </div>
 
@@ -369,7 +369,7 @@ export default function HomePage() {
           {/* Bottom bar */}
           <div className="mt-8 flex flex-col items-center justify-between gap-3 border-t pt-6 sm:flex-row">
             <p className="text-xs text-muted-foreground">
-              © {new Date().getFullYear()} My Certs. All rights reserved.
+              © {new Date().getFullYear()} Safe Pramaan. All rights reserved.
             </p>
             <div className="flex items-center gap-4 text-xs text-muted-foreground">
               <a

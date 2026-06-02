@@ -2,12 +2,13 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { useCreateCertificateMutation, useGetCertificateValidityMutation } from "@/lib/api/certificatesApi"
 import { uploadImage } from "@/lib/auth"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { Upload, X, Loader2, Calendar, Building, FileText, Tag, Globe, Lock } from "lucide-react"
+import { validateImageFile, MAX_CERT_FILE_SIZE } from "@/lib/fileValidation"
 
 export default function UploadPage() {
   const [formData, setFormData] = useState({
@@ -27,28 +28,40 @@ export default function UploadPage() {
   const [error, setError] = useState("")
   const [credentialId, setCredentialId] = useState("")
   const [isUploading, setIsUploading] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
   const router = useRouter()
   const [createCertificate, { isLoading }] = useCreateCertificateMutation()
   const [certificateValidity] = useGetCertificateValidityMutation()
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      if (file.size > 10 * 1024 * 1024) { // 10MB limit
-        setError("File size must be less than 10MB")
-        return
-      }
-      if (!file.type.startsWith("image/")) {
-        setError("Please select an image file")
-        return
-      }
-      setFile(file)
-      setError("")
+  const credentialValidationTimer = useRef<NodeJS.Timeout | null>(null)
 
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        setImageBase64(event.target?.result as string)
-      }
-      reader.readAsDataURL(file) // This is the key function
+  const applyFileSelection = (selectedFile: File) => {
+    const validationError = validateImageFile(selectedFile, MAX_CERT_FILE_SIZE)
+    if (validationError) {
+      setError(validationError)
+      return
+    }
+    setFile(selectedFile)
+    setError("")
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      setImageBase64(event.target?.result as string)
+    }
+    reader.readAsDataURL(selectedFile)
+  }
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0]
+    if (selectedFile) {
+      applyFileSelection(selectedFile)
+    }
+  }
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    setIsDragging(false)
+    const droppedFile = e.dataTransfer.files?.[0]
+    if (droppedFile) {
+      applyFileSelection(droppedFile)
     }
   }
 
@@ -65,6 +78,7 @@ export default function UploadPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (isUploading) return
     setError("")
 
     if (!formData.title.trim()) {
@@ -133,32 +147,31 @@ export default function UploadPage() {
       setIsUploading(false)
     }
   }
+
   useEffect(() => {
-    const validateCredential = async () => {
-      if (credentialId.trim()) {
-        try {
-          const isValid:boolean = await certificateValidity(credentialId).unwrap()
-          if(isValid)
-            setIsCredentialValid(isValid)
-          if (!isValid) {
-            //setError("Credential ID already present")
-            setIsCredentialValid(false)
-          } else {
-            //setError("")
-            setIsCredentialValid(true)
-          }
-        } catch (err) {
-          console.error("Error validating credential ID:", err)
-        }
-      } else {
-        setIsCredentialValid(true)
-        //setError("")
+    if (credentialValidationTimer.current) {
+      clearTimeout(credentialValidationTimer.current)
+    }
+
+    if (!credentialId.trim()) {
+      setIsCredentialValid(true)
+      return
+    }
+
+    credentialValidationTimer.current = setTimeout(async () => {
+      try {
+        const isValid: boolean = await certificateValidity(credentialId).unwrap()
+        setIsCredentialValid(isValid)
+      } catch (err) {
+        console.error("Error validating credential ID:", err)
+      }
+    }, 500)
+
+    return () => {
+      if (credentialValidationTimer.current) {
+        clearTimeout(credentialValidationTimer.current)
       }
     }
-    if(credentialId.length>4)
-    setTimeout(() => {
-      validateCredential()
-    }, 500);
   }, [credentialId])
 
   const breadcrumbs = [{ label: "Dashboard", href: "/dashboard" }, { label: "Upload Certificate" }]
@@ -189,10 +202,20 @@ export default function UploadPage() {
                   </label>
 
                   {!imageBase64 ? (
-                    <div className={`border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center hover:border-primary transition-colors h-[90%] flex flex-col justify-center`}>
+                    <div
+                      onDrop={handleDrop}
+                      onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
+                      onDragEnter={(e) => { e.preventDefault(); setIsDragging(true) }}
+                      onDragLeave={() => setIsDragging(false)}
+                      className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors h-[90%] flex flex-col justify-center
+                        ${isDragging
+                          ? 'border-primary bg-primary/5 dark:bg-primary/10'
+                          : 'border-gray-300 dark:border-gray-600 hover:border-primary'
+                        }`}
+                    >
                       <input
                         type="file"
-                        accept="image/*"
+                        accept=".jpg,.jpeg,.png,.webp,.gif"
                         onChange={handleFileSelect}
                         className="hidden"
                         id="file-upload"
@@ -200,9 +223,9 @@ export default function UploadPage() {
                       <label htmlFor="file-upload" className="cursor-pointer">
                         <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                         <p className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                          Click to upload
+                          Click or drag to upload
                         </p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">PNG, JPG up to 10MB</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">JPEG, PNG, WebP, GIF up to 10MB</p>
                       </label>
                     </div>
                   ) : (
@@ -243,6 +266,7 @@ export default function UploadPage() {
                         onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary focus:border-primary"
                         placeholder="e.g., AWS Certified Solutions Architect"
+                        maxLength={150}
                         required
                       />
                     </div>
@@ -258,6 +282,7 @@ export default function UploadPage() {
                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary focus:border-primary"
                         placeholder="Brief description of the certificate..."
+                        maxLength={1000}
                       />
                     </div>
 
@@ -273,6 +298,7 @@ export default function UploadPage() {
                         onChange={(e) => setFormData({ ...formData, issuer: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary focus:border-primary"
                         placeholder="e.g., Amazon Web Services"
+                        maxLength={120}
                         required
                       />
                     </div>
@@ -287,10 +313,11 @@ export default function UploadPage() {
                         value={formData.credentialId}
                         onChange={(e) => {
                           setFormData({ ...formData, credentialId: e.target.value })
-                          setCredentialId(e.target.value)  
+                          setCredentialId(e.target.value)
                         }}
                         className={`w-full px-3 py-2 border ${isCredentialValid ? "border-gray-300 dark:border-gray-600" : "border-2 border-red-600 dark:border-red-600"} rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary focus:border-primary`}
                         placeholder="Certificate ID or verification code"
+                        maxLength={100}
                       />
                       {!isCredentialValid && (
                         <p className="text-sm text-red-600 dark:text-red-400 mt-1">Credential ID already present</p>

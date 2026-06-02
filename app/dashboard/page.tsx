@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useGetCertificatesQuery, Certificate } from "@/lib/api/certificatesApi"
-import { useGetGroupsQuery } from "@/lib/api/groupsApi"
+import { useGetGroupsQuery, type Group } from "@/lib/api/groupsApi"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { CertificateCard } from "@/components/certificate-card"
 import { GroupCard } from "@/components/group-card"
@@ -12,6 +12,7 @@ import { ShareModal } from "@/components/share-modal"
 export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [sharedCertificate, setSharedCertificate] = useState<Certificate | null>(null)
+  const [sharedGroup, setSharedGroup] = useState<Group | null>(null)
 
   const router = useRouter()
 
@@ -28,9 +29,6 @@ export default function DashboardPage() {
     isLoading: isGroupsLoading,
   } = useGetGroupsQuery({ search: searchQuery })
 
-  useEffect(() => {
-    console.log("shared cert", sharedCertificate)
-  }, [sharedCertificate])
 
   const breadcrumbs = [{ label: "Dashboard" }]
 
@@ -169,6 +167,7 @@ export default function DashboardPage() {
                 key={group.id}
                 group={group}
                 onClick={() => router.push(`/groups/${group.id}`)}
+                setSharedGroup={setSharedGroup}
               />
             ))}
           </div>
@@ -192,6 +191,7 @@ export default function DashboardPage() {
 
       {/* Share Modal */}
       {sharedCertificate && <ShareModal certificate={sharedCertificate} onClose={() => setSharedCertificate(null)} />}
+      {sharedGroup && <ShareModal group={sharedGroup} onClose={() => setSharedGroup(null)} />}
     </DashboardLayout>
   )
 }

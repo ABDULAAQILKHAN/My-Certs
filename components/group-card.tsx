@@ -7,14 +7,15 @@ import { Calendar, Layers, Eye, Share2 } from "lucide-react"
 interface GroupCardProps {
   group: Group
   onClick: () => void
+  setSharedGroup?: (group: Group) => void
 }
 
-export function GroupCard({ group, onClick }: GroupCardProps) {
+export function GroupCard({ group, onClick, setSharedGroup }: GroupCardProps) {
   const handleShare = (e: React.MouseEvent) => {
     e.stopPropagation()
     const shareUrl = `${window.location.origin}/groups/${group.id}`
     navigator.clipboard.writeText(shareUrl)
-    // You might want to show a toast notification here
+    setSharedGroup?.(group)
   }
 
   // Use the first certificate's image as the group cover, or placeholder

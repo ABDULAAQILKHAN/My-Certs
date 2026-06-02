@@ -9,10 +9,13 @@ import { DashboardLayout } from "@/components/dashboard-layout"
 import { User, Mail, Phone, Save, Loader2, Camera } from "lucide-react"
 import { useGetUserProfileQuery } from "@/lib/api/authApi"
 import { updateUserProfile, uploadAvatar } from "@/lib/auth"
+import { validateImageFile, MAX_AVATAR_FILE_SIZE } from "@/lib/fileValidation"
+
 export default function ProfilePage() {
   const { user, token } = useAppSelector((state) => state.auth)
   const [message, setMessage] = useState("")
   const [error, setError] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const [formData, setFormData] = useState({
     id: user?.id || "",
@@ -68,8 +71,10 @@ function formatIndianNumber(input: string): string {
   // Return with +91 prefix
   return `+91 ${digits}`;
 }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (isSubmitting) return
     setError("")
     setMessage("")
     if(!formData.name || !formData.email || !formData.phone){
@@ -81,6 +86,7 @@ function formatIndianNumber(input: string): string {
       return
     }
     formData.phone = formatIndianNumber(formData.phone);
+    setIsSubmitting(true)
     try {
       const payload = {
           name: formData.name,
@@ -105,6 +111,8 @@ function formatIndianNumber(input: string): string {
       setTimeout(() => setMessage(""), 3000)
     } catch (err: any) {
       setError(err.data?.message || "Failed to update profile")
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -126,20 +134,20 @@ function formatIndianNumber(input: string): string {
         </div>
 
         <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md shadow-xl rounded-2xl overflow-hidden border border-gray-200/60 dark:border-gray-700/60 shadow-slate-200/50 dark:shadow-none">
-          <div className="p-6">
-            {message && (
-              <div className="mb-6 p-3.5 bg-green-50 dark:bg-green-950/30 border border-green-200/60 dark:border-green-900/50 rounded-xl flex items-start space-x-2">
-                <span className="text-green-600 dark:text-green-400 text-sm font-medium">{message}</span>
-              </div>
-            )}
+          <form onSubmit={handleSubmit}>
+            <div className="p-6">
+              {message && (
+                <div className="mb-6 p-3.5 bg-green-50 dark:bg-green-950/30 border border-green-200/60 dark:border-green-900/50 rounded-xl flex items-start space-x-2">
+                  <span className="text-green-600 dark:text-green-400 text-sm font-medium">{message}</span>
+                </div>
+              )}
 
-            {error && (
-              <div className="mb-6 p-3.5 bg-red-50 dark:bg-red-950/30 border border-red-200/60 dark:border-red-900/50 rounded-xl flex items-start space-x-2 animate-shake">
-                <span className="text-red-600 dark:text-red-400 text-sm font-medium">{error}</span>
-              </div>
-            )}
+              {error && (
+                <div className="mb-6 p-3.5 bg-red-50 dark:bg-red-950/30 border border-red-200/60 dark:border-red-900/50 rounded-xl flex items-start space-x-2 animate-shake">
+                  <span className="text-red-600 dark:text-red-400 text-sm font-medium">{error}</span>
+                </div>
+              )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
               {/* Profile Picture */}
               <div className="flex items-center space-x-6">
                 <div className="relative">
@@ -165,11 +173,16 @@ function formatIndianNumber(input: string): string {
                   <input
                     id="avatarInput"
                     type="file"
-                    accept="image/*"
+                    accept=".jpg,.jpeg,.png,.webp,.gif"
                     className="hidden"
                     onChange={async (e) => {
                       const file = e.target.files?.[0]
                       if (!file) return
+                      const validationError = validateImageFile(file, MAX_AVATAR_FILE_SIZE)
+                      if (validationError) {
+                        setError(validationError)
+                        return
+                      }
                       setIsUploadingAvatar(true)
                       setError("")
                       try {
@@ -195,7 +208,7 @@ function formatIndianNumber(input: string): string {
               </div>
 
               {/* Form Fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                 <div>
                   <label htmlFor="name" className="block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">
                     Full Name
@@ -211,6 +224,7 @@ function formatIndianNumber(input: string): string {
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl bg-white/50 dark:bg-gray-900/50 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm"
                       placeholder="Enter your full name"
+                      maxLength={100}
                     />
                   </div>
                 </div>
@@ -250,26 +264,24 @@ function formatIndianNumber(input: string): string {
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                       className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl bg-white/50 dark:bg-gray-900/50 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm"
                       placeholder="Enter your phone number"
+                      maxLength={20}
                     />
                   </div>
                 </div>
               </div>
+            </div>
 
-
-            </form>
-          </div>
-
-          <div className="px-6 py-4 bg-gray-50/50 dark:bg-gray-800/50 border-t border-gray-200/60 dark:border-gray-700/60 flex justify-end">
-            <button
-              type="submit"
-              disabled={isLoading}
-              onClick={handleSubmit}
-              className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-700 hover:to-fuchsia-700 text-white font-medium rounded-xl shadow-lg shadow-purple-600/10 dark:shadow-none focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform active:scale-[0.98] flex items-center"
-            >
-              {isLoading ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Save className="h-5 w-5 mr-2" />}
-              Save Changes
-            </button>
-          </div>
+            <div className="px-6 py-4 bg-gray-50/50 dark:bg-gray-800/50 border-t border-gray-200/60 dark:border-gray-700/60 flex justify-end">
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-700 hover:to-fuchsia-700 text-white font-medium rounded-xl shadow-lg shadow-purple-600/10 dark:shadow-none focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform active:scale-[0.98] flex items-center"
+              >
+                {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Save className="h-5 w-5 mr-2" />}
+                Save Changes
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </DashboardLayout>

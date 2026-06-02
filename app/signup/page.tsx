@@ -141,7 +141,7 @@ export default function SignupPage() {
               <Award className="h-12 w-12 text-primary" />
             </div>
             <h2 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white">Create your account</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Join My Certs to securely manage and share digital credentials</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Join Safe Pramaan to securely manage and share digital credentials</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">

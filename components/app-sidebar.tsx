@@ -92,7 +92,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <Award className="size-4" />
           </div>
           <div className="grid flex-1 text-left text-sm leading-tight">
-            <span className="truncate font-semibold">My Certs</span>
+            <span className="truncate font-semibold">Safe Pramaan</span>
             <span className="truncate text-xs text-muted-foreground">Certificate Manager</span>
           </div>
         </div>

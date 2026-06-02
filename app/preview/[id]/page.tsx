@@ -70,26 +70,23 @@ export default function PreviewPage() {
     document.body.removeChild(link)
   }
 
-  const handleDelete = () => {
-    if (!certificate || !certificate.credentialId) return
-    if (confirm("Are you sure you want to delete this certificate? This action cannot be undone.")) {
-      deleteCertificate(certificate.credentialId)
-        .unwrap()
-        .then(() => {
-          if (certificate.imagePath) {
-            deleteImage(certificate.imagePath)
-              .then((res) => {
-                console.log("Image deleted", res)
-                router.push("/dashboard")})
-              .catch((err) => console.error("Failed to delete image:", err))
-          } else{
-            router.push("/dashboard")
-          }
-        })
-        .catch((err) => {
-          console.error("Failed to delete certificate:", err)
-          alert("Failed to delete certificate. Please try again.")
-        })
+  const handleDelete = async () => {
+    if (!certificate?.credentialId) return
+    if (!confirm("Are you sure you want to delete this certificate? This action cannot be undone.")) return
+
+    try {
+      await deleteCertificate(certificate.credentialId).unwrap()
+      if (certificate.imagePath) {
+        try {
+          await deleteImage(certificate.imagePath)
+        } catch (imgErr) {
+          console.error("Certificate deleted but image cleanup failed:", imgErr)
+        }
+      }
+      router.push("/dashboard")
+    } catch (err) {
+      console.error("Failed to delete certificate:", err)
+      alert("Failed to delete certificate. Please try again.")
     }
   }
   const breadcrumbs = [{ label: "Dashboard", href: "/dashboard" }, { label: "Preview" }]

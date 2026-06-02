@@ -90,6 +90,7 @@ export function EditGroupModal({ group, onClose, onSuccess }: EditGroupModalProp
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary focus:border-primary"
                 placeholder="e.g., Cloud Computing Certs"
+                maxLength={100}
                 required
               />
             </div>
@@ -105,6 +106,7 @@ export function EditGroupModal({ group, onClose, onSuccess }: EditGroupModalProp
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary focus:border-primary"
                 placeholder="What is this collection about?"
+                maxLength={500}
               />
             </div>
 

@@ -6,7 +6,7 @@ import { DashboardLayout } from "@/components/dashboard-layout"
 import { CertificateCard } from "@/components/certificate-card"
 import { AddCertificatesModal } from "@/components/add-certificates-modal"
 import { EditGroupModal } from "@/components/edit-group-modal"
-import { GroupShareModal } from "@/components/group-share-modal"
+import { ShareModal } from "@/components/share-modal"
 import { Loader2, ArrowLeft, Layers, Calendar, Share2, Trash2, Plus, Edit, Globe, Lock, Check } from "lucide-react"
 import { useState } from "react"
 import type { Certificate } from "@/lib/api/certificatesApi"
@@ -26,7 +26,7 @@ export default function GroupDetailPage() {
   // API Hooks
   const { data: group, isLoading, error } = useGetGroupByIdQuery(id)
   const [deleteGroup] = useDeleteGroupMutation()
-  const [updateGroup] = useUpdateGroupMutation()
+  const [updateGroup, { isLoading: isTogglingVisibility }] = useUpdateGroupMutation()
   const [removeCertificate] = useRemoveCertificateFromGroupMutation()
 
   const handleDeleteGroup = async () => {
@@ -53,6 +53,7 @@ export default function GroupDetailPage() {
       }).unwrap()
     } catch (err) {
       console.error("Failed to update visibility:", err)
+      alert("Failed to update group visibility. Please try again.")
     }
   }
 
@@ -138,16 +139,22 @@ export default function GroupDetailPage() {
             {/* Visibility Toggle */}
             <button
               onClick={handleTogglePublic}
+              disabled={isTogglingVisibility}
               className={`
-                inline-flex items-center px-4 py-2 border rounded-md shadow-sm text-sm font-medium transition-colors
-                ${group.isPublic 
-                  ? 'border-green-200 bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400' 
+                inline-flex items-center px-4 py-2 border rounded-md shadow-sm text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed
+                ${group.isPublic
+                  ? 'border-green-200 bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400'
                   : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300'
                 }
               `}
               title={group.isPublic ? "Make Private" : "Make Public"}
             >
-              {group.isPublic ? <Globe className="h-4 w-4 mr-2" /> : <Lock className="h-4 w-4 mr-2" />}
+              {isTogglingVisibility
+                ? <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                : group.isPublic
+                  ? <Globe className="h-4 w-4 mr-2" />
+                  : <Lock className="h-4 w-4 mr-2" />
+              }
               {group.isPublic ? "Public" : "Private"}
             </button>
 
@@ -245,7 +252,7 @@ export default function GroupDetailPage() {
       )}
 
       {isShareModalOpen && (
-        <GroupShareModal
+        <ShareModal
           group={group}
           onClose={() => setIsShareModalOpen(false)}
         />
