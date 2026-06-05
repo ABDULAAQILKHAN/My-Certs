@@ -10,7 +10,6 @@ import { useAppDispatch, useAppSelector } from "@/lib/hooks"
 import { setCredentials } from "@/lib/slices/authSlice"
 import { Eye, EyeOff, Award, Loader2, Mail, Lock } from "lucide-react"
 import { signIn } from "@/lib/auth"
-import { useLoginMutation } from "@/lib/api/authApi"
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -20,7 +19,6 @@ export default function LoginPage() {
   const router = useRouter()
   const dispatch = useAppDispatch()
   const { isAuthenticated } = useAppSelector((state) => state.auth)
-  const [login] = useLoginMutation()
 
   useEffect(() => {
     console.log("isAuthenticated login", isAuthenticated)

@@ -169,7 +169,7 @@ export default function SignupPage() {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl bg-white/50 dark:bg-gray-900/50 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm"
-                      placeholder="John Doe"
+                      placeholder="Aaqil khan"
                     />
                   </div>
                 </div>
