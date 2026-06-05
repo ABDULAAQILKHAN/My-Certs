@@ -8,7 +8,7 @@ import { useUpdateProfileMutation } from "@/lib/api/authApi"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { User, Mail, Phone, Save, Loader2, Camera } from "lucide-react"
 import { useGetUserProfileQuery } from "@/lib/api/authApi"
-import { updateUserProfile, uploadAvatar } from "@/lib/auth"
+import { uploadAvatar } from "@/lib/auth"
 import { validateImageFile, MAX_AVATAR_FILE_SIZE } from "@/lib/fileValidation"
 
 export default function ProfilePage() {
@@ -89,24 +89,11 @@ function formatIndianNumber(input: string): string {
     setIsSubmitting(true)
     try {
       const payload = {
-          name: formData.name,
-          phone: formData.phone,
-          avatar: formData.avatar,
-        }
-        const {success, error} = await updateUserProfile(payload)
-      if (error) {
-        setError(error)
-        return
+        name: formData.name,
+        phone: formData.phone,
+        avatar: formData.avatar,
       }
-      if (!success) {
-        setError("Failed to update profile")
-        return
-      }
-  const response = await updateProfile(payload).unwrap()
-      if (!response) {
-        setError("Failed to update profile")
-        return
-      }
+      await updateProfile(payload).unwrap()
       setMessage("Profile updated successfully!")
       setTimeout(() => setMessage(""), 3000)
     } catch (err: any) {
@@ -188,8 +175,7 @@ function formatIndianNumber(input: string): string {
                       try {
                         const path = await uploadAvatar(file)
                         setFormData(prev => ({ ...prev, avatar: path }))
-                        // Immediately persist avatar metadata (optional early save)
-                        await updateUserProfile({ avatar: path })
+                        await updateProfile({ avatar: path }).unwrap()
                         setMessage("Profile picture updated")
                         setTimeout(() => setMessage(""), 3000)
                       } catch (err: any) {

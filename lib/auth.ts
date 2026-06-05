@@ -240,7 +240,7 @@ export async function updateUserProfile(
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({ metadata })
+      body: JSON.stringify( {metadata: metadata} )
     });
 
     if (!res.ok) {

@@ -76,7 +76,7 @@ export const authApi = createApi({
       query: (userData) => ({
         url: `${AUTH_PRO_URL}/users/me`,
         method: "PATCH",
-        body: userData,
+        body: { metadata: userData },
       }),
       invalidatesTags: ["User"],
     }),
